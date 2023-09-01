@@ -6,7 +6,7 @@ IS_VISUALIZE=$3
 if [ -z "$MAP_NAME" ]; then
     echo "[ERROR] please specify map name."
     echo "Usage: $0 <map_name> <mppi_param_path> <is_visualize>"
-    echo "<mppi_param_path> is optional. default is src/control/mppi_controller/config/mppi_controller.yaml"
+    echo "<mppi_param_path> is optional. default is src/mppi_controller/config/mppi_controller.yaml"
     echo "<is_visualize> is optional. default is true"
     exit 1
 fi

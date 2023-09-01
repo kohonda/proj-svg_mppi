@@ -17,7 +17,7 @@ if [ -z "$SIM_WS" ]; then
     echo "[ERROR] please specify gym simulator workspace path."
     echo "Usage: $0 <path_sim_ws> <eval_name> <mppi_param_path> <num_trials> <num_static_obstacles> <is_visualize>"
     echo "<eval_name> is optional. default is 'default'"
-    echo "<mppi_param_path> is optional. default is src/control/mppi_controller/config/mppi_controller.yaml"
+    echo "<mppi_param_path> is optional. default is src/mppi_controller/config/mppi_controller.yaml"
     echo "<num_trials> is optional. default is 100"
     echo "<num_static_obstacles> is optional. default is 5"
     echo "<is_visualize> is optional. default is true"

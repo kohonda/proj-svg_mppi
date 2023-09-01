@@ -19,7 +19,7 @@ CURRENT_DIR=$(cd $(dirname $0) && pwd)
 SUZ_WS=$(cd $(dirname $0) && cd .. && pwd)
 
 # parse template yaml
-default_yaml=$SUZ_WS/src/control/mppi_controller/config/mppi_controller.yaml
+default_yaml=$SUZ_WS/src/mppi_controller/config/mppi_controller.yaml
 tmp_yaml=$SUZ_WS/src/eval/tmp/tmp.yaml
 
 ###########################
