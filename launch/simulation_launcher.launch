@@ -1,0 +1,75 @@
+<launch>
+    <arg name="workspace" default="$(env HOME)/suzlab_ws"/>
+    <arg name="map_name" default="spielberg"/>
+    <arg name="mppi_param_path" default="$(find mppi_controller)/config/mppi_controller.yaml"/>
+    <arg name="use_rviz" default="true"/>
+    <param name="/use_sim_time" value="false"/>
+
+    <!-- Load racecar models -->
+    <include file="$(find racecar_model)/launch/racecar_model.launch"/>
+
+    <!-- Rviz -->
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(arg workspace)/data/rviz/rviz.rviz" if="$(arg use_rviz)"/>
+
+    <!-- Map server : disabled because the same node is provided by f1tenth_gym_ros. -->
+    <!-- <node pkg="map_server" type="map_server" name="map_server" args="$(arg workspace)/data/map/map.yaml" /> -->
+
+    <!-- Cost map -->
+    <!-- <node pkg="f1_costmap_2d" type="f1_costmap_2d_node" name="f1_costmap_2d" output="screen">
+        <rosparam command="load" file="$(find f1_costmap_2d)/params/costmap2d_simulation.yaml" />
+    </node> -->
+
+    <!-- Local cost map -->
+    <node pkg="local_costmap_generator" type="local_costmap_generator_node" name="local_costmap_generator" output="screen">
+        <rosparam command="load" file="$(find local_costmap_generator)/config/local_costmap_generator_simulation.yaml" />
+    </node>
+
+    <!-- reference path loader --> 
+    <!-- <node pkg="reference_path_loader" type="reference_path_loader_node" name="reference_path_loader" output="screen">
+        <param name="reference_path_csv" value="$(arg workspace)/data/reference_path/ego_ref_path.csv" />
+        <param name="reference_path_topic" value="/reference_path" />
+        <param name="map_frame" value="map" />
+    </node> -->
+
+    <!-- reference waypoint(= ref_path & ref_vel) loader --> 
+    <node pkg="reference_waypoint_loader" type="reference_waypoint_loader_node" name="reference_waypoint_loader" output="screen">
+        <param name="reference_waypoint_csv" value="$(arg workspace)/data/reference_path/$(arg map_name)/ego_ref_waypoint.csv" />
+        <param name="reference_waypoint_topic" value="/reference_waypoint" />
+        <param name="reference_path_topic" value="/reference_path" />
+        <param name="reference_rviz_marker_topic" value="/rviz_reference_marker" />
+        <param name="reference_waypoint_v_column_label" value="ref_v" />
+        <param name="map_frame" value="map" />
+
+        <!-- publish optimized path (for aggressive driving) -->
+        <param name="reference_waypoint_x_column_label" value="opt_x" />
+        <param name="reference_waypoint_y_column_label" value="opt_y" />
+
+        <!-- publish centerline (for safe driving) -->
+        <!-- <param name="reference_waypoint_x_column_label" value="center_x" />
+        <param name="reference_waypoint_y_column_label" value="center_y" /> -->
+    </node>
+
+    <!-- MPC tracker with C/GMRES -->
+    <!-- <include file="$(find mpc_tracker)/launch/mpc_tracker.launch"/> -->
+
+    <!-- pure pursuit -->
+    <!-- <include file="$(find pure_pursuit)/launch/pure_pursuit.launch">
+        <arg name="is_simulation" value="true"/>
+    </include> -->
+
+    <!-- Reference SDF generator -->
+    <include file="$(find reference_sdf_generator)/launch/reference_sdf_generator.launch"/>
+
+    <!-- DWA -->
+    <!-- <include file="$(find dwa)/launch/dwa.launch">
+        <arg name="is_simulation" value="true" />
+    </include> -->
+
+    <!-- MPPI -->
+    <include file="$(find mppi_controller)/launch/mppi_controller.launch">
+        <arg name="is_simulation" value="true"/>
+        <arg name="is_localize_less_mode" value="false"/>
+        <arg name="mppi_param_path" value="$(arg mppi_param_path)"/>
+    </include>
+
+</launch>

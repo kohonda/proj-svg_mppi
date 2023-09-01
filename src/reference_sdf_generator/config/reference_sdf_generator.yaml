@@ -1,0 +1,22 @@
+out_sdf_topic: reference_sdf
+in_waypoints_topic: reference_waypoint
+robot_frame_id: ego_racecar/base_link
+map_frame_id: map
+backward_point_topic: backward_point
+
+update_rate: 0.025 # Rate of publishing the reference sdf [s]
+thread_num: 2 # Number of threads for parallel processing
+ref_path_map_resolution: 0.1 # Resolution of the reference sdf grid map
+ref_path_map_width: 20.0 # Width of the reference sdf grid map
+ref_path_map_height: 20.0 # Height of the reference sdf grid map
+
+num_waypoints: 80 # Number of used waypoints from robot current position
+backward_margin_num: 0 # margin for switchback
+waypoint_interval: 0.1 # Distance between two waypoints [m]
+reference_speed_scale: 1.0 # Scale of the reference speed [0. inf)
+max_speed: 100.0 # Maximum speed for clipping [m/s]
+# The following is for reducing the size of the map
+# But it is not used in the current version
+# submap_center_ahead: 0.0
+# submap_length: 5.0
+# submap_width: 5.0

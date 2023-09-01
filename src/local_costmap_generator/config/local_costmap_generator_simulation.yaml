@@ -1,0 +1,39 @@
+# system
+robot_frame_id: ego_racecar/base_link
+sensor_frame_id: ego_racecar/laser
+in_scan_topic: scan
+out_costmap_topic: local_costmap
+
+# parameters
+
+## common
+update_rate: 0.01 # [s]
+thread_num: 2
+
+## preprocess setting
+is_crop_robot: true # crop points in the robot body
+
+is_remove_outlier: false
+sor_mean_k: 10
+sor_stddev_mul_thresh: 1.0
+
+is_downsample: false
+downsample_resolution: 0.1 # [m]
+
+is_pass_through: false
+pass_through_min_from_robot: 0.0 # [m]
+pass_through_max_from_robot: 2.0 # [m]
+
+## rigid body shape [m] for inflate costmap
+baselink2front: 0.47
+baselink2rear: 0.14
+baselink2right: 0.15
+baselink2left: 0.15
+
+## costmap setting
+map_x_length: 10.0 # [m]
+map_y_length: 10.0 # [m]
+map_center_offset_x: 3.0 # [m] map center ahead of robot
+map_center_offset_y: 0.0 # [m] map center left of robot
+map_resolution: 0.05 # [m]
+max_val: 100.0 # max value of costmap, min value is 0.0

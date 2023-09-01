@@ -1,0 +1,7 @@
+<launch>
+    <arg name="param_path" default="$(find reference_sdf_generator)/config/reference_sdf_generator.yaml"/>
+
+    <node pkg="reference_sdf_generator" type="reference_sdf_generator_node" name="reference_sdf_generator" output="screen">
+        <rosparam command="load" file="$(arg param_path)"/>
+    </node>
+</launch>

@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="map" default="$(find f1tenth_gym_ros)/maps/map.yaml"/>
+  <arg name="num_static_obstacles" default="5"/>
+
+  <!-- Load rosparam -->
+  <rosparam command="load" file="$(find f1tenth_gym_ros)/params.yaml"/>
+
+  <!-- Launch a map from the maps folder-->
+  <node pkg="map_server" name="map_server_sim" type="map_server" args="$(arg map)"/>
+
+  <!-- Launch robot model -->
+  <include file="$(find f1tenth_gym_ros)/launch/racecar_model.launch"/>
+
+  <!-- Launch gym bridge node -->
+  <param name="map_path" value="$(arg map)"/>
+  <node pkg="f1tenth_gym_ros" name="gym_bridge" type="gym_bridge.py" output="screen">
+    <param name="num_static_obstacles" value="$(arg num_static_obstacles)"/>
+  </node>
+
+</launch>

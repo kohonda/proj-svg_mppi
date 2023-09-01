@@ -1,0 +1,28 @@
+<package format="2">
+  <name>eval_local_planner</name>
+  <version>0.0.1</version>
+  <description>
+    Evaluation node for local planner
+  </description>
+  <author>Kohei Honda</author>
+  <maintainer email="0905honda@gmail.com">Kohei Honda</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>message_filters</build_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>message_generation</build_depend>
+  <build_depend>mppi_metrics_msgs</build_depend>
+
+  <build_export_depend>message_filters</build_export_depend>
+  <build_export_depend>rospy</build_export_depend>
+  <build_export_depend>std_msgs</build_export_depend>
+  <build_export_depend>mppi_metrics_msgs</build_export_depend>
+  
+  <exec_depend>message_filters</exec_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>message_runtime</exec_depend>
+  <exec_depend>mppi_metrics_msgs</exec_depend>
+</package>

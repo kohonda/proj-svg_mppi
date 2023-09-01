@@ -1,0 +1,7 @@
+<launch>
+    <arg name="param_path" default="$(find local_costmap_generator)/config/local_costmap_generator.yaml"/>
+
+    <node pkg="local_costmap_generator" type="local_costmap_generator_node" name="local_costmap_generator" output="screen">
+        <rosparam command="load" file="$(arg param_path)"/>
+    </node>
+</launch>

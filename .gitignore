@@ -49,3 +49,17 @@ qtcreator-*
 
 # Catkin custom files
 CATKIN_IGNORE
+.catkin_tools/
+
+# For python venv
+.venv/
+venv/
+
+# vscode
+.vscode
+
+# For eval
+!/src/eval/log
+/src/eval/tmp/tmp.yaml
+
+__pycache__/

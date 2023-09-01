@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- group for ego racecar -->
+  <group ns="ego_racecar">
+  <!-- Open the model file -->
+  <arg name="racecar_xacro" default="$(find racecar_model)/ego_racecar.xacro"/>
+  <param name="tf_prefix" value="ego_racecar"/>
+  <param name="robot_description" command="xacro --inorder '$(arg racecar_xacro)'"/>
+  </group>
+
+  <!-- group for opponent racecar -->
+  <group ns="opp_racecar">
+  <!-- Open the model file -->
+  <arg name="racecar_xacro" default="$(find racecar_model)/opp_racecar.xacro"/>
+  <param name="tf_prefix" value="opp_racecar"/>
+  <param name="robot_description" command="xacro --inorder '$(arg racecar_xacro)'"/>
+  </group>
+
+</launch>

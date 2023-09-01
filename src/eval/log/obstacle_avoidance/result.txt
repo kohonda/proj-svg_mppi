@@ -1,0 +1,20 @@
+===== collision rate (%) =====
+ forward_mppi(cov:0.05)  forward_mppi(cov:0.075)  sv_mpc  forward_mppi(cov:0.1)  forward_mppi(cov:0.025)  reverse_mppi  svg_mppi
+                   25.0                     21.0    12.4                   24.4                     13.6          24.8       4.0
+
+===== success rate (%) =====
+ forward_mppi(cov:0.05)  forward_mppi(cov:0.075)  sv_mpc  forward_mppi(cov:0.1)  forward_mppi(cov:0.025)  reverse_mppi  svg_mppi
+                   25.0                     32.0    57.0                   27.0                     46.0          25.0      84.0
+
+===== mean calculation time (ms) =====
+ forward_mppi(cov:0.05)  forward_mppi(cov:0.075)   sv_mpc  forward_mppi(cov:0.1)  forward_mppi(cov:0.025)  reverse_mppi  svg_mppi
+              12.228044                12.142908 29.08274              12.192884                11.963975     25.991078 10.996517
+
+===== max calculation time (ms) =====
+ forward_mppi(cov:0.05)  forward_mppi(cov:0.075)    sv_mpc  forward_mppi(cov:0.1)  forward_mppi(cov:0.025)  reverse_mppi  svg_mppi
+              43.069771                34.249859 50.148918               32.81353                32.079838     55.886452 39.654819
+
+===== min calculation time (ms) =====
+ forward_mppi(cov:0.05)  forward_mppi(cov:0.075)  sv_mpc  forward_mppi(cov:0.1)  forward_mppi(cov:0.025)  reverse_mppi  svg_mppi
+              11.383617                11.367415 21.6952              11.400786                11.127115     23.685493 10.003488
+

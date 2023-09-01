@@ -1,0 +1,109 @@
+# system
+control_cmd_topic: drive
+in_reference_sdf_topic: reference_sdf
+in_odom_topic: odom
+is_activate_ad_topic: is_active_ad
+robot_frame_id: ego_racecar/base_link
+map_frame_id: map
+costmap_id: f1_costmap_2d/f1_costmap/costmap # used only not localize_less_mode
+local_costmap_id: local_costmap # used only localize_less_mode
+backward_point_topic: backward_point
+control_sampling_time: 0.025
+use_local_costmap: true # if true, use local costmap of grid map. Otherwise, use global costmap of costmap 2d.
+# Because the local costmap is more accurate than the global costmap (not effected pose estimation accuracy),
+# we recommend to use the local costmap.
+# NOTE: If you set localize_less_mode to true, force the use_local_costmap to true.
+is_visualize_mppi: true
+constant_speed_mode: false
+# if true, the speed is fixed to reference_speed. Otherwise, the reference speed is determined by the waypoints.
+# NOTE: If you set localize_less_mode to true, force the constant_speed_mode to true.
+reference_speed: 1.5
+collision_rate_threshold: 1.1 # [0, 1] If the collision rate is larger than this value, robot speed cmd is set to 0.
+# stuck detection params
+# This is currently only used in localize_less_mode.
+speed_deque_size: 10
+stuck_speed_threshold: 0.3 # [m/s]
+steer_1st_delay: 0.1 # [s] steer delay of 1st order system
+mpc_mode: "svg_mppi" # "forward_mppi" or "reverse_mppi" or "sv_mpc" or "svg_mppi"
+
+common:
+  thread_num: 12
+  prediction_step_size: 15
+  prediction_interval: 0.05
+  steer_delay: 0.025 # [s] dead time. If set enough large value, the prediction is similar to DWA planner.
+  max_steer_angle: 0.45
+  min_steer_angle: -0.45
+  speed_prediction_mode: reference # linear or constant or reference
+  max_accel: 5.0
+  min_accel: -3.0
+  lr: 0.135
+  lf: 0.189
+  collision_weight: 1.0
+  # If localize_less_mode, the following parameters (q_angle and q_dist) are ignored.
+  q_dist: 1.0
+  q_angle: 0.01
+  q_terminal_dist: 1.0
+  q_terminal_angle: 0.01
+
+forward_mppi:
+  sample_batch_num: 10000
+  lambda: 3.0 # temperature parameter [0, inf) of free energy, which is a balancing term between control cost and state cost.
+  alpha: 0.1 # weighting parameter [0, 1], which balances control penalties from previous control sequence and nominal control sequence.
+  non_biased_sampling_rate: 0.1 # [0, 1]. add random noise to candidate control sequence with this rate.
+  # steer_cov: 0.05
+  steer_cov: 0.1
+  # accel_cov: 0.1
+
+  # Parameters for estimating gradient of Reverse KLD
+  num_itr_for_grad_estimation: 0 # If 0, vanilla MPPI is used without gradient estimation.
+  step_size_for_grad_estimation: 0.001
+  sample_num_for_grad_estimation: 5
+  steer_cov_for_grad_estimation: 0.001
+
+reverse_mppi:
+  sample_batch_num: 200
+  negative_ratio: 1.0
+  is_sample_rejection: true
+  sample_inflation_ratio: 2.0
+  iteration_num: 50
+  step_size: 0.05
+  warm_start_ratio: 0.5
+  lambda: 3.0 # temperature parameter [0, inf) of free energy, which is a balancing term between control cost and state cost.
+  alpha: 0.1 # weighting parameter [0, 1], which balances control penalties from previous control sequence and nominal control sequence.
+  non_biased_sampling_rate: 0.1 # [0, 1]. add random noise to candidate control sequence with this rate.
+  steer_cov: 0.1
+  # accel_cov: 0.1
+
+stein_variational_mpc:
+  sample_batch_num: 500
+  lambda: 3.0 # temperature parameter [0, inf) of free energy, which is a balancing term between control cost and state cost.
+  alpha: 0.1
+  non_biased_sampling_rate: 0.1 # [0, 1]. add random noise to candidate control sequence with this rate.
+  # steer_cov: 0.05
+  steer_cov: 0.1 # initial covariance
+  # accel_cov: 0.1
+  num_svgd_iteration: 3
+  sample_num_for_grad_estimation: 10
+  steer_cov_for_grad_estimation: 0.01
+  svgd_step_size: 0.5
+  is_max_posterior_estimation: false
+
+svg_mppi:
+  sample_batch_num: 8000
+  lambda: 3.0 # temperature parameter [0, inf) of free energy, which is a balancing term between control cost and state cost.
+  non_biased_sampling_rate: 0.1 # [0, 1]. add random noise to candidate control sequence with this rate.
+  alpha: 0.1 # weighting parameter [0, 1], which balances control penalties from previous control sequence and nominal control sequence.
+  # steer_cov: 0.05
+  steer_cov: 0.01 # initial covariance or constant covariance if is_covariance_adaptation is false
+  # accel_cov: 0.1
+  guide_sample_num: 1
+  grad_lambda: 3.0
+  sample_num_for_grad_estimation: 100
+  steer_cov_for_grad_estimation: 0.01
+  svgd_step_size: 0.005
+  num_svgd_iteration: 10
+  is_use_nominal_solution: true
+  is_covariance_adaptation: true
+  gaussian_fitting_lambda: 0.1
+  min_steer_cov: 0.001
+  max_steer_cov: 0.1

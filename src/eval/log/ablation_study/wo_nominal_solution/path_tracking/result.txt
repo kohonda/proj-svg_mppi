@@ -1,0 +1,20 @@
+===== collision rate (%) =====
+ w_nominal_solution  wo_nominal_solution
+                0.0                  9.4
+
+===== success rate (%) =====
+ w_nominal_solution  wo_nominal_solution
+              100.0                 62.0
+
+===== mean calculation time (ms) =====
+ w_nominal_solution  wo_nominal_solution
+          11.011889            11.555154
+
+===== max calculation time (ms) =====
+ w_nominal_solution  wo_nominal_solution
+          38.327957           101.669357
+
+===== min calculation time (ms) =====
+ w_nominal_solution  wo_nominal_solution
+          10.309262            10.381723
+

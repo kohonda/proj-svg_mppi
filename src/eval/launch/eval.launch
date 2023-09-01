@@ -1,0 +1,11 @@
+<launch>
+  <arg name="trial_num" default="100" />
+  <arg name="log_dir" default="$(find eval_local_planner)/log" />
+  <arg name="eval_name" default="unkonwn" />
+  
+  <node pkg="eval_local_planner" type="eval.py" name="eval">
+    <param name="trial_num" value="$(arg trial_num)" />
+    <param name="log_dir" value="$(arg log_dir)" />
+    <param name="eval_name" value="$(arg eval_name)" />
+  </node>
+</launch>

@@ -1,0 +1,6 @@
+Header header
+int32 ego_lap_count
+float32 ego_elapsed_time
+bool ego_collision
+int32 num_obstacles
+bool[] static_obstacle_collisions
