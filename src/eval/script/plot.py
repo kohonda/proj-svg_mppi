@@ -254,7 +254,7 @@ def double_cost_box(
     align_data = pd.concat([pt_align_data, oa_align_data], axis=0)
     align_data["Scenario"] = ["PT"] * len(pt_align_data) + ["OA"] * len(oa_align_data)
 
-    fig, ax1 = plt.subplots(figsize=(20, 12))
+    fig, ax1 = plt.subplots(figsize=(30, 12))
 
     sns.set_theme(style="whitegrid")
     sns.set_context("poster")
@@ -294,15 +294,26 @@ def double_cost_box(
         ax=ax2,
     )
 
+    # delete x label
+    ax1.set_xlabel("")
+    ax2.set_xlabel("")
+
+    # set legend size
+    handles, labels = ax1.get_legend_handles_labels()
+    ax1.legend(handles=handles[0:6], labels=labels[0:6], fontsize=40, loc="upper right")
+    ax2.legend(
+        handles=handles[6:12], labels=labels[6:12], fontsize=40, loc="upper right"
+    )
+
     ax2.set_ylim(0, 55.0)
     ax1.set_ylim(0, 6.5)
 
-    ax1.set_xlabel("Algorithm", fontsize=30)
-    ax1.set_ylabel("Mean trajectory state cost per trial (PT)", fontsize=30)
-    ax2.set_ylabel("Mean trajectory state cost per trial (OA)", fontsize=30)
+    # ax1.set_xlabel("Algorithm", fontsize=30)
+    ax1.set_ylabel("Mean trajectory state cost per trial (PT)", fontsize=40)
+    ax2.set_ylabel("Mean trajectory state cost per trial (OA)", fontsize=40)
 
-    ax1.tick_params(labelsize=25)
-    ax2.tick_params(labelsize=25)
+    ax1.tick_params(labelsize=45)
+    ax2.tick_params(labelsize=45)
 
     # text mean
     for i, mean in enumerate(pt_means):
@@ -312,7 +323,7 @@ def double_cost_box(
             "{:.2f}".format(mean),
             ha="right",
             va="center",
-            fontsize=25,
+            fontsize=30,
         )
     for i, mean in enumerate(oa_means):
         ax2.text(
@@ -321,7 +332,7 @@ def double_cost_box(
             "{:.2f}".format(mean),
             ha="left",
             va="center",
-            fontsize=25,
+            fontsize=30,
         )
 
     # save as pdf
