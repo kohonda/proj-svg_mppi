@@ -309,8 +309,8 @@ def double_cost_box(
     ax1.set_ylim(0, 6.5)
 
     # ax1.set_xlabel("Algorithm", fontsize=30)
-    ax1.set_ylabel("Mean trajectory state cost per trial (PT)", fontsize=40)
-    ax2.set_ylabel("Mean trajectory state cost per trial (OA)", fontsize=40)
+    ax1.set_ylabel("Mean sequence state cost per trial (PT)", fontsize=40)
+    ax2.set_ylabel("Mean sequence state cost per trial (OA)", fontsize=40)
 
     ax1.tick_params(labelsize=45)
     ax2.tick_params(labelsize=45)
@@ -323,7 +323,7 @@ def double_cost_box(
             "{:.2f}".format(mean),
             ha="right",
             va="center",
-            fontsize=30,
+            fontsize=40,
         )
     for i, mean in enumerate(oa_means):
         ax2.text(
@@ -332,7 +332,7 @@ def double_cost_box(
             "{:.2f}".format(mean),
             ha="left",
             va="center",
-            fontsize=30,
+            fontsize=45,
         )
 
     # save as pdf
