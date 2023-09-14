@@ -5,6 +5,10 @@ import pandas as pd
 from matplotlib import pyplot as plt
 import seaborn as sns
 
+# to avoid type3 font
+plt.rcParams["pdf.fonttype"] = 42
+plt.rcParams["ps.fonttype"] = 42
+
 
 def read_files(result_dir: str) -> Dict[str, pd.DataFrame]:
     # get all csv path and name in result_dir
@@ -309,8 +313,8 @@ def double_cost_box(
     ax1.set_ylim(0, 6.5)
 
     # ax1.set_xlabel("Algorithm", fontsize=30)
-    ax1.set_ylabel("Mean sequence state cost per trial (PT)", fontsize=40)
-    ax2.set_ylabel("Mean sequence state cost per trial (OA)", fontsize=40)
+    ax1.set_ylabel("Mean sequence state cost per lap (PT)", fontsize=40)
+    ax2.set_ylabel("Mean sequence state cost per lap (OA)", fontsize=40)
 
     ax1.tick_params(labelsize=45)
     ax2.tick_params(labelsize=45)
@@ -323,7 +327,7 @@ def double_cost_box(
             "{:.2f}".format(mean),
             ha="right",
             va="center",
-            fontsize=40,
+            fontsize=45,
         )
     for i, mean in enumerate(oa_means):
         ax2.text(
