@@ -1,0 +1,28 @@
+{
+  "configurations": [
+      {
+          "browse": {
+              "databaseFilename": "${workspaceFolder}/.vscode/browse.vc.db",
+              "limitSymbolsToIncludedHeaders": true,
+              "path": [
+                  "/opt/ros/noetic/include/**",
+                  "${workspaceFolder}/src/**",
+                  "/usr/include/**",
+              ]
+          },
+          "includePath": [
+              "/opt/ros/noetic/include/**",
+              "${workspaceFolder}/src/**",
+              "/usr/include/**",
+          ],
+          "name": "ROS",
+          "intelliSenseMode": "gcc-x64",
+          "compilerPath": "/usr/bin/clang",
+          "cStandard": "gnu11",
+          "cppStandard": "c++17",
+          "mergeConfigurations": false,
+          "configurationProvider": "ms-vscode.makefile-tools"
+      }
+  ],
+  "version": 4
+}

@@ -1,10 +1,7 @@
 #include "mppi_controller/mppi_controller_ros.hpp"
 
-namespace mppi
-{
-  MPPIControllerROS::MPPIControllerROS()
-      : nh_(""), private_nh_("~"), tf_listener_(tf_buffer_)
-  {
+namespace mppi {
+MPPIControllerROS::MPPIControllerROS() : nh_(""), private_nh_("~"), tf_listener_(tf_buffer_) {
     // set parameters from ros parameter server
     private_nh_.param("is_simulation", is_simulation_, false);
     private_nh_.param("is_localize_less_mode", is_localize_less_mode_, false);
@@ -39,10 +36,9 @@ namespace mppi
     private_nh_.param("steer_1st_delay", steer_1st_delay_, static_cast<double>(0.1));
 
     // fill deque
-    for (int i = 0; i < speed_deque_size_; i++)
-    {
-      const double enough_speed = stuck_speed_threshold_ + 1.0;
-      speed_deque_.push_back(enough_speed);
+    for (int i = 0; i < speed_deque_size_; i++) {
+        const double enough_speed = stuck_speed_threshold_ + 1.0;
+        speed_deque_.push_back(enough_speed);
     }
 
     // load params
@@ -73,7 +69,8 @@ namespace mppi
     private_nh_.param("common/collision_weight", params.common.collision_weight, 0.01);
     private_nh_.param("common/q_terminal_dist", params.common.q_terminal_dist, 1.0);
     private_nh_.param("common/q_terminal_angle", params.common.q_terminal_angle, 0.0);
-    // private_nh_.param("common/q_terminal_speed", params.q_terminal_speed, 10.0);
+    // private_nh_.param("common/q_terminal_speed",
+    // params.q_terminal_speed, 10.0);
 
     // Forward MPPI params
     private_nh_.param("forward_mppi/sample_batch_num", params.forward_mppi.sample_batch_num, 1000);
@@ -107,7 +104,8 @@ namespace mppi
     private_nh_.param("stein_variational_mpc/alpha", params.stein_variational_mpc.alpha, 0.1);
     private_nh_.param("stein_variational_mpc/non_biased_sampling_rate", params.stein_variational_mpc.non_biased_sampling_rate, 0.1);
     private_nh_.param("stein_variational_mpc/steer_cov", params.stein_variational_mpc.steer_cov, 0.5);
-    // private_nh_.param("stein_variational_mpc/accel_cov", params.accel_cov, 0.5);
+    // private_nh_.param("stein_variational_mpc/accel_cov", params.accel_cov,
+    // 0.5);
     private_nh_.param("stein_variational_mpc/num_svgd_iteration", params.stein_variational_mpc.num_svgd_iteration, 100);
     private_nh_.param("stein_variational_mpc/sample_num_for_grad_estimation", params.stein_variational_mpc.sample_num_for_grad_estimation, 10);
     private_nh_.param("stein_variational_mpc/steer_cov_for_grad_estimation", params.stein_variational_mpc.steer_cov_for_grad_estimation, 0.05);
@@ -134,43 +132,33 @@ namespace mppi
     private_nh_.param("svg_mppi/max_steer_cov", params.svg_mppi.max_steer_cov, 0.1);
 
     const std::string mpc_mode = private_nh_.param<std::string>("mpc_mode", "");
-    if (mpc_mode == "forward_mppi")
-    {
-      mpc_solver_ptr_ = std::make_unique<mppi::cpu::ForwardMPPI>(params.common, params.forward_mppi);
-    }
-    else if (mpc_mode == "reverse_mppi")
-    {
-      mpc_solver_ptr_ = std::make_unique<mppi::cpu::ReverseMPPI>(params.common, params.reverse_mppi);
-    }
-    else if (mpc_mode == "sv_mpc")
-    {
-      mpc_solver_ptr_ = std::make_unique<mppi::cpu::SteinVariationalMPC>(params.common, params.stein_variational_mpc);
-    }
-    else if (mpc_mode == "svg_mppi")
-    {
-      mpc_solver_ptr_ = std::make_unique<mppi::cpu::SVGuidedMPPI>(params.common, params.svg_mppi);
-    }
-    else
-    {
-      ROS_ERROR("Invalid MPC mode: %s", mpc_mode.c_str());
-      exit(1);
+    if (mpc_mode == "forward_mppi") {
+        mpc_solver_ptr_ = std::make_unique<mppi::cpu::ForwardMPPI>(params.common, params.forward_mppi);
+    } else if (mpc_mode == "reverse_mppi") {
+        mpc_solver_ptr_ = std::make_unique<mppi::cpu::ReverseMPPI>(params.common, params.reverse_mppi);
+    } else if (mpc_mode == "sv_mpc") {
+        mpc_solver_ptr_ = std::make_unique<mppi::cpu::SteinVariationalMPC>(params.common, params.stein_variational_mpc);
+    } else if (mpc_mode == "svg_mppi") {
+        mpc_solver_ptr_ = std::make_unique<mppi::cpu::SVGuidedMPPI>(params.common, params.svg_mppi);
+    } else {
+        ROS_ERROR("Invalid MPC mode: %s", mpc_mode.c_str());
+        exit(1);
     }
 
     // set publishers and subscribers
     pub_ackermann_cmd_ = nh_.advertise<ackermann_msgs::AckermannDriveStamped>(control_cmd_topic, 1);
     timer_control_ = nh_.createTimer(ros::Duration(control_sampling_time_), &MPPIControllerROS::timer_callback, this);
     sub_activated_ = nh_.subscribe(is_activate_ad_topic, 1, &MPPIControllerROS::callback_activate_signal, this);
-    if (is_localize_less_mode_)
-    {
-      sub_odom_ = nh_.subscribe(in_odom_topic, 1, &MPPIControllerROS::callback_odom, this); // subscribe only odometry
-      sub_grid_map_ = nh_.subscribe(local_costmap_id, 1, &MPPIControllerROS::callback_grid_map, this);
-    }
-    else
-    {
-      sub_odom_ = nh_.subscribe(in_odom_topic, 1, &MPPIControllerROS::callback_odom_with_pose, this); // subscribe odometry and localized pose
-      sub_reference_sdf_ = nh_.subscribe(in_reference_sdf_topic, 1, &MPPIControllerROS::callback_reference_sdf, this);
+    if (is_localize_less_mode_) {
+        sub_odom_ = nh_.subscribe(in_odom_topic, 1, &MPPIControllerROS::callback_odom,
+                                  this);  // subscribe only odometry
+        sub_grid_map_ = nh_.subscribe(local_costmap_id, 1, &MPPIControllerROS::callback_grid_map, this);
+    } else {
+        sub_odom_ = nh_.subscribe(in_odom_topic, 1, &MPPIControllerROS::callback_odom_with_pose,
+                                  this);  // subscribe odometry and localized pose
+        sub_reference_sdf_ = nh_.subscribe(in_reference_sdf_topic, 1, &MPPIControllerROS::callback_reference_sdf, this);
 
-      sub_grid_map_ = nh_.subscribe(local_costmap_id, 1, &MPPIControllerROS::callback_grid_map, this);
+        sub_grid_map_ = nh_.subscribe(local_costmap_id, 1, &MPPIControllerROS::callback_grid_map, this);
     }
 
     sub_start_cmd_ = nh_.subscribe("mppi/start", 1, &MPPIControllerROS::start_cmd_callback, this);
@@ -187,21 +175,17 @@ namespace mppi
     pub_collision_rate_ = nh_.advertise<std_msgs::Float32>("mppi/collision_rate", 1, true);
     pub_cost_ = nh_.advertise<std_msgs::Float32>("mppi/cost", 1, true);
     pub_mppi_metrics_ = nh_.advertise<mppi_metrics_msgs::MPPIMetrics>("mppi/eval_metrics", 1, true);
-  }
+}
 
-  // Get current pose and velocity used with localization model
-  void MPPIControllerROS::callback_odom_with_pose(const nav_msgs::Odometry &odom)
-  {
+// Get current pose and velocity used with localization model
+void MPPIControllerROS::callback_odom_with_pose(const nav_msgs::Odometry& odom) {
     /*Get current pose via tf*/
     geometry_msgs::TransformStamped trans_form_stamped;
-    try
-    {
-      trans_form_stamped = tf_buffer_.lookupTransform(map_frame_id_, robot_frame_id_, ros::Time(0));
-    }
-    catch (const tf2::TransformException &ex)
-    {
-      ROS_WARN_THROTTLE(3.0, "[MPPIController]: %s", ex.what());
-      return;
+    try {
+        trans_form_stamped = tf_buffer_.lookupTransform(map_frame_id_, robot_frame_id_, ros::Time(0));
+    } catch (const tf2::TransformException& ex) {
+        ROS_WARN_THROTTLE(3.0, "[MPPIController]: %s", ex.what());
+        return;
     };
 
     /*Update status*/
@@ -212,11 +196,10 @@ namespace mppi
     robot_state_.vel = odom.twist.twist.linear.x;
 
     is_robot_state_ok_ = true;
-  }
+}
 
-  // Get only current velocity used with localization less model
-  void MPPIControllerROS::callback_odom(const nav_msgs::Odometry &odom)
-  {
+// Get only current velocity used with localization less model
+void MPPIControllerROS::callback_odom(const nav_msgs::Odometry& odom) {
     /*Update status*/
     robot_state_.x = 0.0;
     robot_state_.y = 0.0;
@@ -224,96 +207,84 @@ namespace mppi
     robot_state_.vel = odom.twist.twist.linear.x;
 
     is_robot_state_ok_ = true;
-  }
+}
 
-  void MPPIControllerROS::callback_activate_signal(const std_msgs::Bool &is_activate)
-  {
+void MPPIControllerROS::callback_activate_signal(const std_msgs::Bool& is_activate) {
     is_activate_ad_ = static_cast<bool>(is_activate.data);
-  }
+}
 
-  void MPPIControllerROS::callback_grid_map(const grid_map_msgs::GridMap &grid_map)
-  {
+void MPPIControllerROS::callback_grid_map(const grid_map_msgs::GridMap& grid_map) {
     // make grid map for obstacle layer
-    if (!grid_map::GridMapRosConverter::fromMessage(grid_map, obstacle_map_))
-    {
-      ROS_ERROR("[MPPIControllerROS]Failed to convert grid map to grid map");
-      return;
+    if (!grid_map::GridMapRosConverter::fromMessage(grid_map, obstacle_map_)) {
+        ROS_ERROR("[MPPIControllerROS]Failed to convert grid map to grid map");
+        return;
     }
 
     is_costmap_ok_ = true;
-  }
+}
 
-  void MPPIControllerROS::callback_reference_sdf(const grid_map_msgs::GridMap &grid_map)
-  {
+void MPPIControllerROS::callback_reference_sdf(const grid_map_msgs::GridMap& grid_map) {
     // make grid map for reference path layer
-    if (!grid_map::GridMapRosConverter::fromMessage(grid_map, reference_sdf_))
-    {
-      ROS_ERROR("[MPPIControllerROS]Failed to convert reference sdf to grid map");
-      return;
+    if (!grid_map::GridMapRosConverter::fromMessage(grid_map, reference_sdf_)) {
+        ROS_ERROR("[MPPIControllerROS]Failed to convert reference sdf to grid map");
+        return;
     }
     is_reference_sdf_ok_ = true;
-  }
+}
 
-  void MPPIControllerROS::start_cmd_callback([[maybe_unused]] const std_msgs::Empty &msg)
-  {
+void MPPIControllerROS::start_cmd_callback([[maybe_unused]] const std_msgs::Empty& msg) {
     is_start_ = true;
     ROS_INFO("[MPD] start cmd received");
-  }
+}
 
-  void MPPIControllerROS::stop_cmd_callback([[maybe_unused]] const std_msgs::Empty &msg)
-  {
+void MPPIControllerROS::stop_cmd_callback([[maybe_unused]] const std_msgs::Empty& msg) {
     is_start_ = false;
     ROS_INFO("[MPD] stop cmd received");
-  }
+}
 
-  // Control loop
-  void MPPIControllerROS::timer_callback([[maybe_unused]] const ros::TimerEvent &te)
-  {
+// Control loop
+void MPPIControllerROS::timer_callback([[maybe_unused]] const ros::TimerEvent& te) {
     /* Status check */
-    if (is_localize_less_mode_)
-    {
-      if (!is_robot_state_ok_ || !is_costmap_ok_)
-      {
-        ROS_WARN_THROTTLE(5.0, "[MPPIControllerROS] Not ready: Robot state: %d, Map: %d", is_robot_state_ok_, is_costmap_ok_);
+    if (is_localize_less_mode_) {
+        if (!is_robot_state_ok_ || !is_costmap_ok_) {
+            ROS_WARN_THROTTLE(5.0, "[MPPIControllerROS] Not ready: Robot state: %d, Map: %d", is_robot_state_ok_, is_costmap_ok_);
+            return;
+        }
+    } else {
+        if (!is_robot_state_ok_ || !is_reference_sdf_ok_ || !is_costmap_ok_) {
+            ROS_WARN_THROTTLE(5.0,
+                              "[MPPIControllerROS] Not ready: Robot state: %d, "
+                              "Reference SDF: %d, Map: %d",
+                              is_robot_state_ok_, is_reference_sdf_ok_, is_costmap_ok_);
+            return;
+        }
+    }
+
+    if (!is_activate_ad_ && !is_simulation_) {
+        // publish zero control command and return
+        ROS_WARN_THROTTLE(5.0, "[MPPIControllerROS] waiting to activate signal");
+        control_msg_.header.stamp = ros::Time::now();
+        control_msg_.drive.steering_angle = 0.0;
+        control_msg_.drive.speed = 0.0;
+        pub_ackermann_cmd_.publish(control_msg_);
+
         return;
-      }
     }
-    else
-    {
-      if (!is_robot_state_ok_ || !is_reference_sdf_ok_ || !is_costmap_ok_)
-      {
-        ROS_WARN_THROTTLE(5.0, "[MPPIControllerROS] Not ready: Robot state: %d, Reference SDF: %d, Map: %d", is_robot_state_ok_, is_reference_sdf_ok_, is_costmap_ok_);
+
+    if (!is_start_) {
+        // publish zero control command and
+        ROS_WARN_THROTTLE(5.0, "[MPPIControllerROS] waiting to start signal from rviz");
+        control_msg_.header.stamp = ros::Time::now();
+        control_msg_.drive.steering_angle = 0.0;
+        control_msg_.drive.speed = 0.0;
+        pub_ackermann_cmd_.publish(control_msg_);
+
+        // publish predicted state for debug
+        const int num_visualized_samples = 100;
+        const auto [predict_state_seq_batch, weights] = mpc_solver_ptr_->get_state_seq_candidates(num_visualized_samples);
+        publish_candidate_paths(predict_state_seq_batch, weights, pub_candidate_paths_);
+
         return;
-      }
-    }
-
-    if (!is_activate_ad_ && !is_simulation_)
-    {
-      // publish zero control command and return
-      ROS_WARN_THROTTLE(5.0, "[MPPIControllerROS] waiting to activate signal");
-      control_msg_.header.stamp = ros::Time::now();
-      control_msg_.drive.steering_angle = 0.0;
-      control_msg_.drive.speed = 0.0;
-      pub_ackermann_cmd_.publish(control_msg_);
-
-      return;
-    }
-
-    if (!is_start_)
-    {
-      // publish zero control command and
-      ROS_WARN_THROTTLE(5.0, "[MPPIControllerROS] waiting to start signal from rviz");
-      control_msg_.header.stamp = ros::Time::now();
-      control_msg_.drive.steering_angle = 0.0;
-      control_msg_.drive.speed = 0.0;
-      pub_ackermann_cmd_.publish(control_msg_);
-
-      // publish predicted state for debug
-      const int num_visualized_samples = 100;
-      const auto [predict_state_seq_batch, weights] = mpc_solver_ptr_->get_state_seq_candidates(num_visualized_samples);
-      publish_candidate_paths(predict_state_seq_batch, weights, pub_candidate_paths_);
-
-      return;
     }
 
     mtx_.lock();
@@ -321,9 +292,8 @@ namespace mppi
     stop_watch_.lap();
 
     mpc_solver_ptr_->set_obstacle_map(obstacle_map_);
-    if (!is_localize_less_mode_)
-    {
-      mpc_solver_ptr_->set_reference_map(reference_sdf_);
+    if (!is_localize_less_mode_) {
+        mpc_solver_ptr_->set_reference_map(reference_sdf_);
     }
 
     // steer observer
@@ -353,23 +323,21 @@ namespace mppi
     control_msg_.header.stamp = ros::Time::now();
     control_msg_.drive.steering_angle = std::atan2(std::sin(steering_angle), std::cos(steering_angle));
     double speed_cmd = 0.0;
-    if (constant_speed_mode_ || is_localize_less_mode_)
-    {
-      // Note: constant speed is used in localize_less_mode because reference sdf is not available
-      speed_cmd = reference_speed_;
-    }
-    else
-    {
-      if (reference_sdf_.isInside(grid_map::Position(robot_state_.x, robot_state_.y)))
-      {
-        // speed_cmd = reference_sdf_.atPosition(speed_field_layer_name_, grid_map::Position(ahead_x, ahead_y));
-        speed_cmd = reference_sdf_.atPosition(speed_field_layer_name_, grid_map::Position(robot_state_.x, robot_state_.y));
-      }
-      else
-      {
+    if (constant_speed_mode_ || is_localize_less_mode_) {
+        // Note: constant speed is used in localize_less_mode because reference sdf
+        // is not available
         speed_cmd = reference_speed_;
-        ROS_WARN("[MPPIControllerROS] Robot is out of reference sdf map. Use constant speed mode.");
-      }
+    } else {
+        if (reference_sdf_.isInside(grid_map::Position(robot_state_.x, robot_state_.y))) {
+            // speed_cmd = reference_sdf_.atPosition(speed_field_layer_name_,
+            // grid_map::Position(ahead_x, ahead_y));
+            speed_cmd = reference_sdf_.atPosition(speed_field_layer_name_, grid_map::Position(robot_state_.x, robot_state_.y));
+        } else {
+            speed_cmd = reference_speed_;
+            ROS_WARN(
+                "[MPPIControllerROS] Robot is out of reference sdf map. Use "
+                "constant speed mode.");
+        }
     }
     control_msg_.drive.speed = speed_cmd;
 
@@ -378,36 +346,32 @@ namespace mppi
     const double calculation_time = stop_watch_.lap();
 
     // ==========  For debug ===============
-    if (is_visualize_mppi_)
-    {
-      // publish predicted state
-      const int num_visualized_samples = 100;
-      const auto [predict_state_seq_batch, weights] = mpc_solver_ptr_->get_state_seq_candidates(num_visualized_samples);
-      publish_candidate_paths(predict_state_seq_batch, weights, pub_candidate_paths_);
+    if (is_visualize_mppi_) {
+        // publish predicted state
+        const int num_visualized_samples = 100;
+        const auto [predict_state_seq_batch, weights] = mpc_solver_ptr_->get_state_seq_candidates(num_visualized_samples);
+        publish_candidate_paths(predict_state_seq_batch, weights, pub_candidate_paths_);
 
-      // Get covariance of proposed distribution
-      const auto cov_matrices = mpc_solver_ptr_->get_cov_matrices();
+        // Get covariance of proposed distribution
+        const auto cov_matrices = mpc_solver_ptr_->get_cov_matrices();
 
-      // publish best state
-      publish_traj(best_state_seq, "best_path", "red", pub_best_path_);
+        // publish best state
+        publish_traj(best_state_seq, "best_path", "red", pub_best_path_);
 
-      // publish control covariance
-      publish_control_covs(best_state_seq, cov_matrices, pub_control_covariances_);
+        // publish control covariance
+        publish_control_covs(best_state_seq, cov_matrices, pub_control_covariances_);
 
-      // publish proposed state distribution
-      const auto [mean, xycov_mat] = mpc_solver_ptr_->get_proposed_state_distribution();
-      publish_state_seq_dists(mean, xycov_mat, pub_proposal_state_distributions_);
+        // publish proposed state distribution
+        const auto [mean, xycov_mat] = mpc_solver_ptr_->get_proposed_state_distribution();
+        publish_state_seq_dists(mean, xycov_mat, pub_proposal_state_distributions_);
 
-      // publish nominal state
-      const auto nominal_control_seq = mpc_solver_ptr_->get_control_seq();
-      const auto nominal_state_seq = std::get<0>(
-          mpc_solver_ptr_->get_predictive_seq(initial_state, nominal_control_seq));
-      publish_path(nominal_state_seq, "nominal_path", "g", pub_nominal_path_);
-    }
-    else
-    {
-      // publish best state
-      publish_traj(best_state_seq, "best_path", "red", pub_best_path_);
+        // publish nominal state
+        const auto nominal_control_seq = mpc_solver_ptr_->get_control_seq();
+        const auto nominal_state_seq = std::get<0>(mpc_solver_ptr_->get_predictive_seq(initial_state, nominal_control_seq));
+        publish_path(nominal_state_seq, "nominal_path", "g", pub_nominal_path_);
+    } else {
+        // publish best state
+        publish_traj(best_state_seq, "best_path", "red", pub_best_path_);
     }
 
     // publish cost of the best state seq
@@ -438,21 +402,19 @@ namespace mppi
     mppi_metrics_msg.collision_cost = collision_cost;
     mppi_metrics_msg.input_error = input_error;
     pub_mppi_metrics_.publish(mppi_metrics_msg);
-  }
+}
 
-  void MPPIControllerROS::publish_traj(const mppi::cpu::StateSeq &state_seq, const std::string &name_space,
-                                       const std::string &rgb, const ros::Publisher &publisher) const
-  {
+void MPPIControllerROS::publish_traj(const mppi::cpu::StateSeq& state_seq,
+                                     const std::string& name_space,
+                                     const std::string& rgb,
+                                     const ros::Publisher& publisher) const {
     visualization_msgs::MarkerArray marker_array;
 
     visualization_msgs::Marker arrow;
-    if (is_localize_less_mode_)
-    {
-      arrow.header.frame_id = robot_frame_id_;
-    }
-    else
-    {
-      arrow.header.frame_id = map_frame_id_;
+    if (is_localize_less_mode_) {
+        arrow.header.frame_id = robot_frame_id_;
+    } else {
+        arrow.header.frame_id = map_frame_id_;
     }
     arrow.header.stamp = ros::Time::now();
     arrow.ns = name_space;
@@ -478,42 +440,39 @@ namespace mppi
     // arrow.lifetime = ros::Duration(0.1);
     arrow.points.resize(2);
 
-    for (int i = 0; i < state_seq.rows(); i++)
-    {
-      arrow.id = i;
-      const auto state = state_seq.row(i);
-      const double length = abs(state[STATE_SPACE::vel]) * 0.1;
-      geometry_msgs::Point start;
-      start.x = state[STATE_SPACE::x];
-      start.y = state[STATE_SPACE::y];
-      start.z = 0.1;
+    for (int i = 0; i < state_seq.rows(); i++) {
+        arrow.id = i;
+        const auto state = state_seq.row(i);
+        const double length = abs(state[STATE_SPACE::vel]) * 0.1;
+        geometry_msgs::Point start;
+        start.x = state[STATE_SPACE::x];
+        start.y = state[STATE_SPACE::y];
+        start.z = 0.1;
 
-      geometry_msgs::Point end;
-      end.x = state[STATE_SPACE::x] + length * cos(state[STATE_SPACE::yaw]);
-      end.y = state[STATE_SPACE::y] + length * sin(state[STATE_SPACE::yaw]);
-      end.z = 0.1;
+        geometry_msgs::Point end;
+        end.x = state[STATE_SPACE::x] + length * cos(state[STATE_SPACE::yaw]);
+        end.y = state[STATE_SPACE::y] + length * sin(state[STATE_SPACE::yaw]);
+        end.z = 0.1;
 
-      arrow.points[0] = start;
-      arrow.points[1] = end;
+        arrow.points[0] = start;
+        arrow.points[1] = end;
 
-      marker_array.markers.push_back(arrow);
+        marker_array.markers.push_back(arrow);
     }
     publisher.publish(marker_array);
-  }
+}
 
-  void MPPIControllerROS::publish_path(const mppi::cpu::StateSeq &state_seq, const std::string &name_space,
-                                       const std::string &rgb, const ros::Publisher &publisher) const
-  {
+void MPPIControllerROS::publish_path(const mppi::cpu::StateSeq& state_seq,
+                                     const std::string& name_space,
+                                     const std::string& rgb,
+                                     const ros::Publisher& publisher) const {
     visualization_msgs::MarkerArray marker_array;
 
     visualization_msgs::Marker line;
-    if (is_localize_less_mode_)
-    {
-      line.header.frame_id = robot_frame_id_;
-    }
-    else
-    {
-      line.header.frame_id = map_frame_id_;
+    if (is_localize_less_mode_) {
+        line.header.frame_id = robot_frame_id_;
+    } else {
+        line.header.frame_id = map_frame_id_;
     }
     line.header.stamp = ros::Time::now();
     line.ns = name_space + "_line";
@@ -533,13 +492,10 @@ namespace mppi
 
     // nodes
     visualization_msgs::Marker nodes;
-    if (is_localize_less_mode_)
-    {
-      nodes.header.frame_id = robot_frame_id_;
-    }
-    else
-    {
-      nodes.header.frame_id = map_frame_id_;
+    if (is_localize_less_mode_) {
+        nodes.header.frame_id = robot_frame_id_;
+    } else {
+        nodes.header.frame_id = map_frame_id_;
     }
     nodes.header.stamp = ros::Time::now();
     nodes.ns = name_space + "_nodes";
@@ -560,113 +516,100 @@ namespace mppi
     nodes.color.b = ((rgb == "b" || rgb == "blue") ? 1.0 : 0.0);
     // nodes.lifetime = ros::Duration(0.1);
 
-    for (int j = 0; j < state_seq.rows(); j++)
-    {
-      geometry_msgs::Point point;
-      point.x = state_seq(j, STATE_SPACE::x);
-      point.y = state_seq(j, STATE_SPACE::y);
-      point.z = 0.1;
-      line.points.push_back(point);
-      nodes.points.push_back(point);
+    for (int j = 0; j < state_seq.rows(); j++) {
+        geometry_msgs::Point point;
+        point.x = state_seq(j, STATE_SPACE::x);
+        point.y = state_seq(j, STATE_SPACE::y);
+        point.z = 0.1;
+        line.points.push_back(point);
+        nodes.points.push_back(point);
     }
     marker_array.markers.push_back(line);
     marker_array.markers.push_back(nodes);
 
     publisher.publish(marker_array);
-  }
+}
 
-  void MPPIControllerROS::publish_candidate_paths(const std::vector<mppi::cpu::StateSeq> &state_seq_batch,
-                                                  const std::vector<double> &weights, const ros::Publisher &publisher) const
-  {
-
+void MPPIControllerROS::publish_candidate_paths(const std::vector<mppi::cpu::StateSeq>& state_seq_batch,
+                                                const std::vector<double>& weights,
+                                                const ros::Publisher& publisher) const {
     assert(state_seq_batch.size() == weights.size());
 
     visualization_msgs::MarkerArray marker_array;
 
     const double max_weight = weights[0];
     const double max_node_size = 0.05;
-    for (size_t i = 0; i < state_seq_batch.size(); i++)
-    {
-      visualization_msgs::Marker line;
-      if (is_localize_less_mode_)
-      {
-        line.header.frame_id = robot_frame_id_;
-      }
-      else
-      {
-        line.header.frame_id = map_frame_id_;
-      }
-      line.header.stamp = ros::Time::now();
-      line.ns = "candidate_path_line";
-      line.id = i;
-      line.type = visualization_msgs::Marker::LINE_STRIP;
-      line.action = visualization_msgs::Marker::ADD;
-      line.pose.orientation.x = 0.0;
-      line.pose.orientation.y = 0.0;
-      line.pose.orientation.z = 0.0;
-      line.pose.orientation.w = 1.0;
-      line.scale.x = 0.01;
-      line.color.a = 0.3;
-      line.color.r = 0.0;
-      line.color.g = 0.5;
-      line.color.b = 1.0;
-      // line.lifetime = ros::Duration(0.1);
+    for (size_t i = 0; i < state_seq_batch.size(); i++) {
+        visualization_msgs::Marker line;
+        if (is_localize_less_mode_) {
+            line.header.frame_id = robot_frame_id_;
+        } else {
+            line.header.frame_id = map_frame_id_;
+        }
+        line.header.stamp = ros::Time::now();
+        line.ns = "candidate_path_line";
+        line.id = i;
+        line.type = visualization_msgs::Marker::LINE_STRIP;
+        line.action = visualization_msgs::Marker::ADD;
+        line.pose.orientation.x = 0.0;
+        line.pose.orientation.y = 0.0;
+        line.pose.orientation.z = 0.0;
+        line.pose.orientation.w = 1.0;
+        line.scale.x = 0.01;
+        line.color.a = 0.3;
+        line.color.r = 0.0;
+        line.color.g = 0.5;
+        line.color.b = 1.0;
+        // line.lifetime = ros::Duration(0.1);
 
-      // nodes
-      visualization_msgs::Marker nodes;
-      if (is_localize_less_mode_)
-      {
-        nodes.header.frame_id = robot_frame_id_;
-      }
-      else
-      {
-        nodes.header.frame_id = map_frame_id_;
-      }
-      nodes.header.stamp = ros::Time::now();
-      nodes.ns = "candidate_path_nodes";
-      nodes.id = line.id + 10000 + i;
-      nodes.type = visualization_msgs::Marker::SPHERE_LIST;
-      nodes.action = visualization_msgs::Marker::ADD;
-      nodes.pose.orientation.x = 0.0;
-      nodes.pose.orientation.y = 0.0;
-      nodes.pose.orientation.z = 0.0;
-      nodes.pose.orientation.w = 1.0;
-      nodes.scale.x = weights[i] * max_node_size / max_weight + 0.01;
-      nodes.scale.y = 0.01;
-      nodes.scale.z = 0.01;
-      nodes.color.a = 0.6;
-      nodes.color.r = 0.0;
-      nodes.color.g = 0.5;
-      nodes.color.b = 1.0;
-      // nodes.lifetime = ros::Duration(0.1);
+        // nodes
+        visualization_msgs::Marker nodes;
+        if (is_localize_less_mode_) {
+            nodes.header.frame_id = robot_frame_id_;
+        } else {
+            nodes.header.frame_id = map_frame_id_;
+        }
+        nodes.header.stamp = ros::Time::now();
+        nodes.ns = "candidate_path_nodes";
+        nodes.id = line.id + 10000 + i;
+        nodes.type = visualization_msgs::Marker::SPHERE_LIST;
+        nodes.action = visualization_msgs::Marker::ADD;
+        nodes.pose.orientation.x = 0.0;
+        nodes.pose.orientation.y = 0.0;
+        nodes.pose.orientation.z = 0.0;
+        nodes.pose.orientation.w = 1.0;
+        nodes.scale.x = weights[i] * max_node_size / max_weight + 0.01;
+        nodes.scale.y = 0.01;
+        nodes.scale.z = 0.01;
+        nodes.color.a = 0.6;
+        nodes.color.r = 0.0;
+        nodes.color.g = 0.5;
+        nodes.color.b = 1.0;
+        // nodes.lifetime = ros::Duration(0.1);
 
-      for (int j = 0; j < state_seq_batch.at(0).rows(); j++)
-      {
-        geometry_msgs::Point point;
-        point.x = state_seq_batch.at(i)(j, STATE_SPACE::x);
-        point.y = state_seq_batch.at(i)(j, STATE_SPACE::y);
-        point.z = 0.0;
-        line.points.push_back(point);
-        nodes.points.push_back(point);
-      }
-      marker_array.markers.push_back(line);
-      marker_array.markers.push_back(nodes);
+        for (int j = 0; j < state_seq_batch.at(0).rows(); j++) {
+            geometry_msgs::Point point;
+            point.x = state_seq_batch.at(i)(j, STATE_SPACE::x);
+            point.y = state_seq_batch.at(i)(j, STATE_SPACE::y);
+            point.z = 0.0;
+            line.points.push_back(point);
+            nodes.points.push_back(point);
+        }
+        marker_array.markers.push_back(line);
+        marker_array.markers.push_back(nodes);
     }
     publisher.publish(marker_array);
-  }
+}
 
-  void MPPIControllerROS::publish_control_covs(const mppi::cpu::StateSeq &state_seq,
-                                               const mppi::cpu::ControlSeqCovMatrices &cov_matrices, const ros::Publisher &publisher) const
-  {
+void MPPIControllerROS::publish_control_covs(const mppi::cpu::StateSeq& state_seq,
+                                             const mppi::cpu::ControlSeqCovMatrices& cov_matrices,
+                                             const ros::Publisher& publisher) const {
     visualization_msgs::MarkerArray marker_array;
     visualization_msgs::Marker ellipse;
-    if (is_localize_less_mode_)
-    {
-      ellipse.header.frame_id = robot_frame_id_;
-    }
-    else
-    {
-      ellipse.header.frame_id = map_frame_id_;
+    if (is_localize_less_mode_) {
+        ellipse.header.frame_id = robot_frame_id_;
+    } else {
+        ellipse.header.frame_id = map_frame_id_;
     }
     ellipse.header.stamp = ros::Time::now();
     ellipse.ns = "steer_covariance";
@@ -691,40 +634,36 @@ namespace mppi
     ellipse.color.b = 0.0;
     // ellipse.lifetime = ros::Duration(1.0);
 
-    const double control_cov_scale = 3.0;
+    const double control_cov_scale = 1.5;
 
-    for (int i = 0; i < state_seq.rows() - 1; i++)
-    {
-      // ellipse of proposal distribution
-      ellipse.id = i;
-      const auto cov_matrix = cov_matrices[i];
-      // Only publish steer
-      const double cov = cov_matrix(CONTROL_SPACE::steer, CONTROL_SPACE::steer);
-      const double std_dev = sqrt(cov) * control_cov_scale;
-      ellipse_scale.x = 2.0 * std_dev + 0.01;
-      ellipse_scale.y = 2.0 * std_dev + 0.01;
-      ellipse_scale.z = 0.01;
-      ellipse.scale = ellipse_scale;
-      ellipse.pose.position.x = state_seq(i, STATE_SPACE::x);
-      ellipse.pose.position.y = state_seq(i, STATE_SPACE::y);
+    for (int i = 0; i < state_seq.rows() - 1; i++) {
+        // ellipse of proposal distribution
+        ellipse.id = i;
+        const auto cov_matrix = cov_matrices[i];
+        // Only publish steer
+        const double cov = cov_matrix(CONTROL_SPACE::steer, CONTROL_SPACE::steer);
+        const double std_dev = sqrt(cov) * control_cov_scale;
+        ellipse_scale.x = 2.0 * std_dev + 0.01;
+        ellipse_scale.y = 2.0 * std_dev + 0.01;
+        ellipse_scale.z = 0.01;
+        ellipse.scale = ellipse_scale;
+        ellipse.pose.position.x = state_seq(i, STATE_SPACE::x);
+        ellipse.pose.position.y = state_seq(i, STATE_SPACE::y);
 
-      marker_array.markers.push_back(ellipse);
+        marker_array.markers.push_back(ellipse);
     }
     publisher.publish(marker_array);
-  }
+}
 
-  void MPPIControllerROS::publish_state_seq_dists(const mppi::cpu::StateSeq &state_seq,
-                                                  const mppi::cpu::XYCovMatrices &cov_matrices, const ros::Publisher &publisher) const
-  {
+void MPPIControllerROS::publish_state_seq_dists(const mppi::cpu::StateSeq& state_seq,
+                                                const mppi::cpu::XYCovMatrices& cov_matrices,
+                                                const ros::Publisher& publisher) const {
     visualization_msgs::MarkerArray marker_array;
     visualization_msgs::Marker ellipse;
-    if (is_localize_less_mode_)
-    {
-      ellipse.header.frame_id = robot_frame_id_;
-    }
-    else
-    {
-      ellipse.header.frame_id = map_frame_id_;
+    if (is_localize_less_mode_) {
+        ellipse.header.frame_id = robot_frame_id_;
+    } else {
+        ellipse.header.frame_id = map_frame_id_;
     }
     ellipse.header.stamp = ros::Time::now();
     ellipse.ns = "proposal_state_distributions";
@@ -749,34 +688,33 @@ namespace mppi
     ellipse.color.b = 1.0;
     // ellipse.lifetime = ros::Duration(0.1);
 
-    for (int i = 0; i < state_seq.rows(); i++)
-    {
-      ellipse.id = i;
-      ellipse.pose.position.x = state_seq(i, STATE_SPACE::x);
-      ellipse.pose.position.y = state_seq(i, STATE_SPACE::y);
+    for (int i = 0; i < state_seq.rows(); i++) {
+        ellipse.id = i;
+        ellipse.pose.position.x = state_seq(i, STATE_SPACE::x);
+        ellipse.pose.position.y = state_seq(i, STATE_SPACE::y);
 
-      // get length and angle of major and minor axis
-      Eigen::SelfAdjointEigenSolver<Eigen::Matrix2d> eigensolver(cov_matrices.at(i).block<2, 2>(0, 0));
-      const auto eigen_value = eigensolver.eigenvalues();
-      const auto eigen_vector = eigensolver.eigenvectors();
-      const double major_axis_length = std::sqrt(eigen_value(0));
-      const double minor_axis_length = std::sqrt(eigen_value(1));
-      const double yaw = std::atan2(eigen_vector(1, 0), eigen_vector(0, 0));
+        // get length and angle of major and minor axis
+        Eigen::SelfAdjointEigenSolver<Eigen::Matrix2d> eigensolver(cov_matrices.at(i).block<2, 2>(0, 0));
+        const auto eigen_value = eigensolver.eigenvalues();
+        const auto eigen_vector = eigensolver.eigenvectors();
+        const double major_axis_length = std::sqrt(eigen_value(0));
+        const double minor_axis_length = std::sqrt(eigen_value(1));
+        const double yaw = std::atan2(eigen_vector(1, 0), eigen_vector(0, 0));
 
-      ellipse.scale.x = 2.0 * major_axis_length + 0.1;
-      ellipse.scale.y = 2.0 * minor_axis_length + 0.1;
-      ellipse.scale.z = 0.1;
-      // yaw to quaternion
-      tf2::Quaternion q;
-      q.setRPY(0.0, 0.0, yaw);
-      ellipse.pose.orientation.x = q.x();
-      ellipse.pose.orientation.y = q.y();
-      ellipse.pose.orientation.z = q.z();
-      ellipse.pose.orientation.w = q.w();
+        ellipse.scale.x = 2.0 * major_axis_length + 0.1;
+        ellipse.scale.y = 2.0 * minor_axis_length + 0.1;
+        ellipse.scale.z = 0.1;
+        // yaw to quaternion
+        tf2::Quaternion q;
+        q.setRPY(0.0, 0.0, yaw);
+        ellipse.pose.orientation.x = q.x();
+        ellipse.pose.orientation.y = q.y();
+        ellipse.pose.orientation.z = q.z();
+        ellipse.pose.orientation.w = q.w();
 
-      marker_array.markers.push_back(ellipse);
+        marker_array.markers.push_back(ellipse);
     }
     publisher.publish(marker_array);
-  }
-
 }
+
+}  // namespace mppi

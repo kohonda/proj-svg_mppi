@@ -1,0 +1,13 @@
+---
+BasedOnStyle: Chromium
+AccessModifierOffset: -4
+AlignAfterOpenBracket: Align
+ColumnLimit: 150
+ConstructorInitializerIndentWidth: 4
+ContinuationIndentWidth: 4
+IndentWidth: 4
+Language: Cpp
+NamespaceIndentation: Inner
+Standard: c++17
+---
+

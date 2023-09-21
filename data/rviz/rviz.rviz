@@ -501,21 +501,22 @@ Visualization Manager:
       text size: 14
       top: 300
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /mppi/proposal_state_distributions
       Name: proposal_state_dists
-      Namespaces:
-        proposal_state_distributions: true
-      Queue Size: 100
-      Value: true
-    - Class: rviz/MarkerArray
-      Enabled: false
-      Marker Topic: /mppi/candidate_paths
-      Name: candidates path
       Namespaces:
         {}
       Queue Size: 100
       Value: false
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /mppi/candidate_paths
+      Name: candidates path
+      Namespaces:
+        candidate_path_line: true
+        candidate_path_nodes: true
+      Queue Size: 100
+      Value: true
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /mppi/control_covariances
@@ -579,7 +580,7 @@ Visualization Manager:
       Near Clip Distance: 0.009999999776482582
       Pitch: 0.5353983044624329
       Target Frame: ego_racecar/base_link
-      Yaw: 3.165398597717285
+      Yaw: 3.1453986167907715
     Saved: ~
 Window Geometry:
   Displays:

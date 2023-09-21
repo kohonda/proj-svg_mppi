@@ -55,11 +55,13 @@ CATKIN_IGNORE
 .venv/
 venv/
 
-# vscode
-.vscode
-
 # For eval
 !/src/eval/log
 /src/eval/tmp/tmp.yaml
 
 __pycache__/
+
+# vscode
+browse.vc.db
+browse.vc.db-shm
+browse.vc.db-wal

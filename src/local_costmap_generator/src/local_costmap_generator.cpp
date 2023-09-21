@@ -1,13 +1,9 @@
 #include "local_costmap_generator/local_costmap_generator.hpp"
 
-namespace gm = ::grid_map::grid_map_pcl;
+namespace local_costmap_generator {
 
-namespace local_costmap_generator
-{
-
-  LocalCostmapGenerator::LocalCostmapGenerator()
-      : nh_(""), private_nh_("~"), tf_listener_(tf_buffer_), cost_map_(std::vector<std::string>({collision_layer_name_}))
-  {
+LocalCostmapGenerator::LocalCostmapGenerator()
+    : nh_(""), private_nh_("~"), tf_listener_(tf_buffer_), cost_map_(std::vector<std::string>({collision_layer_name_})) {
     // set parameter from ros parameter server
     private_nh_.param("robot_frame_id", robot_frame_id_, static_cast<std::string>("base_link"));
     private_nh_.param("sensor_frame_id", sensor_frame_id_, static_cast<std::string>("laser"));
@@ -80,11 +76,9 @@ namespace local_costmap_generator
     // debug
     pub_cloud_ = nh_.advertise<sensor_msgs::PointCloud2>("preprocessed_cloud", 1, true);
     // pub_calc_time_ = nh_.advertise<std_msgs::Float32>("local_costmap/calc_time", 1, true);
-  }
+}
 
-  void LocalCostmapGenerator::scan_callback(const sensor_msgs::LaserScan::ConstPtr &scan)
-  {
-
+void LocalCostmapGenerator::scan_callback(const sensor_msgs::LaserScan::ConstPtr& scan) {
     // convert Laser scan to point cloud
     projector_.projectLaser(*scan, *raw_pc2_ptr_);
 
@@ -92,15 +86,13 @@ namespace local_costmap_generator
     pcl::fromROSMsg(*raw_pc2_ptr_, *raw_pcl_ptr_);
 
     is_laser_scan_received_ = true;
-  }
+}
 
-  void LocalCostmapGenerator::timer_callback([[maybe_unused]] const ros::TimerEvent &te)
-  {
+void LocalCostmapGenerator::timer_callback([[maybe_unused]] const ros::TimerEvent& te) {
     /* Status check */
-    if (!is_laser_scan_received_)
-    {
-      ROS_WARN_THROTTLE(5.0, "[LocalCostmapGenerator] Waiting for laser scan data...");
-      return;
+    if (!is_laser_scan_received_) {
+        ROS_WARN_THROTTLE(5.0, "[LocalCostmapGenerator] Waiting for laser scan data...");
+        return;
     }
 
     // ======== time measurement ========
@@ -110,22 +102,18 @@ namespace local_costmap_generator
     preprocess_pointcloud(raw_pcl_ptr_, preprocessed_pcl_ptr_);
 
     // transform coordinate from sensor frame to robot frame
-    try
-    {
-      transform_stamped_ = tf_buffer_.lookupTransform(robot_frame_id_, sensor_frame_id_, ros::Time(0));
-    }
-    catch (tf2::TransformException &ex)
-    {
-      ROS_WARN_THROTTLE(3.0, "[LocalCostmapGenerator] %s", ex.what());
-      return;
+    try {
+        transform_stamped_ = tf_buffer_.lookupTransform(robot_frame_id_, sensor_frame_id_, ros::Time(0));
+    } catch (tf2::TransformException& ex) {
+        ROS_WARN_THROTTLE(3.0, "[LocalCostmapGenerator] %s", ex.what());
+        return;
     }
     const Eigen::Isometry3d transform_matrix = tf2::transformToEigen(transform_stamped_.transform);
     pcl::transformPointCloud(*preprocessed_pcl_ptr_, *trans_preprocessed_pcl_ptr_, transform_matrix.matrix().cast<float>());
 
     // remove points within the robot
-    if (is_crop_robot_)
-    {
-      crop_points_within_robot(trans_preprocessed_pcl_ptr_);
+    if (is_crop_robot_) {
+        crop_points_within_robot(trans_preprocessed_pcl_ptr_);
     }
 
     // convert to grid map
@@ -154,51 +142,44 @@ namespace local_costmap_generator
     preprocessed_pc2.header.frame_id = robot_frame_id_;
     preprocessed_pc2.header.stamp = ros::Time::now();
     pub_cloud_.publish(preprocessed_pc2);
-  }
+}
 
-  /**
-   * @brief preprocess_pointcloud
-   * @param[in] raw_pcl_ptr_ raw point cloud in sensor frame
-   * @param[out] preprocessed_pcl_ptr_ preprocessed point cloud in sensor frame
-   */
-  void LocalCostmapGenerator::preprocess_pointcloud(const pcl::PointCloud<PointType>::ConstPtr &raw_pcl_ptr_,
-                                                    pcl::PointCloud<PointType>::Ptr &preprocessed_pcl_ptr_)
-  {
-
+/**
+ * @brief preprocess_pointcloud
+ * @param[in] raw_pcl_ptr_ raw point cloud in sensor frame
+ * @param[out] preprocessed_pcl_ptr_ preprocessed point cloud in sensor frame
+ */
+void LocalCostmapGenerator::preprocess_pointcloud(const pcl::PointCloud<PointType>::ConstPtr& raw_pcl_ptr_,
+                                                  pcl::PointCloud<PointType>::Ptr& preprocessed_pcl_ptr_) {
     // NAN remove
     boost::shared_ptr<std::vector<int>> indices(new std::vector<int>);
     pcl::removeNaNFromPointCloud(*raw_pcl_ptr_, *preprocessed_pcl_ptr_, *indices);
 
     // outlier remove
-    if (is_remove_outlier_)
-    {
-      sor_.setInputCloud(preprocessed_pcl_ptr_);
-      sor_.setMeanK(sor_mean_k_);
-      sor_.setStddevMulThresh(sor_stddev_mul_thresh_);
-      sor_.filter(*preprocessed_pcl_ptr_);
+    if (is_remove_outlier_) {
+        sor_.setInputCloud(preprocessed_pcl_ptr_);
+        sor_.setMeanK(sor_mean_k_);
+        sor_.setStddevMulThresh(sor_stddev_mul_thresh_);
+        sor_.filter(*preprocessed_pcl_ptr_);
     }
 
     // downsample
-    if (is_downsample_)
-    {
-      voxel_grid_filter_.setInputCloud(preprocessed_pcl_ptr_);
-      voxel_grid_filter_.setLeafSize(downsample_resolution_, downsample_resolution_, downsample_resolution_);
-      voxel_grid_filter_.filter(*preprocessed_pcl_ptr_);
+    if (is_downsample_) {
+        voxel_grid_filter_.setInputCloud(preprocessed_pcl_ptr_);
+        voxel_grid_filter_.setLeafSize(downsample_resolution_, downsample_resolution_, downsample_resolution_);
+        voxel_grid_filter_.filter(*preprocessed_pcl_ptr_);
     }
 
     // pass through filter to remove too near or too far points
-    if (is_pass_through_)
-    {
-      pass_through_filter_.setInputCloud(preprocessed_pcl_ptr_);
-      pass_through_filter_.setFilterFieldName("z");
-      pass_through_filter_.setFilterLimits(pass_through_min_from_robot_, pass_through_max_from_robot_);
-      pass_through_filter_.filter(*preprocessed_pcl_ptr_);
+    if (is_pass_through_) {
+        pass_through_filter_.setInputCloud(preprocessed_pcl_ptr_);
+        pass_through_filter_.setFilterFieldName("z");
+        pass_through_filter_.setFilterLimits(pass_through_min_from_robot_, pass_through_max_from_robot_);
+        pass_through_filter_.filter(*preprocessed_pcl_ptr_);
     }
-  }
+}
 
-  void LocalCostmapGenerator::crop_points_within_robot(pcl::PointCloud<PointType>::Ptr &pcl_ptr_)
-  {
-
+void LocalCostmapGenerator::crop_points_within_robot(pcl::PointCloud<PointType>::Ptr& pcl_ptr_) {
     crop_box_filter_.setInputCloud(pcl_ptr_);
     crop_box_filter_.setNegative(true);
     crop_box_filter_.setMin(crop_box_min_);
@@ -214,46 +195,43 @@ namespace local_costmap_generator
     // max_point << max_x, max_y, max_high, 1.0;
 
     crop_box_filter_.filter(*pcl_ptr_);
-  }
+}
 
-  std::vector<grid_map::Index> LocalCostmapGenerator::pointcloud_to_costmap(const pcl::PointCloud<PointType>::ConstPtr &preprocessed_pcl_ptr,
-                                                                            grid_map::GridMap *cost_map) const
+std::vector<grid_map::Index> LocalCostmapGenerator::pointcloud_to_costmap(const pcl::PointCloud<PointType>::ConstPtr& preprocessed_pcl_ptr,
+                                                                          grid_map::GridMap* cost_map) const
 
-  {
-    grid_map::Matrix &cost_map_data = cost_map->get(collision_layer_name_);
+{
+    grid_map::Matrix& cost_map_data = cost_map->get(collision_layer_name_);
     // costmap clear
     cost_map_data.setZero();
     std::vector<grid_map::Index> occupied_indices(preprocessed_pcl_ptr->points.size());
 
 #pragma omp parallel for num_threads(thread_num_)
-    for (unsigned int i = 0; i < preprocessed_pcl_ptr->points.size(); ++i)
-    {
-      const auto &point = preprocessed_pcl_ptr->points[i];
-      if (cost_map->isInside(grid_map::Position(point.x, point.y)))
-      {
-        grid_map::Index index;
-        cost_map->getIndex(grid_map::Position(point.x, point.y), index);
-        cost_map_data(index.x(), index.y()) = max_val_;
-        occupied_indices[i] = index;
-      }
-      else
-      {
-        occupied_indices[i] = grid_map::Index(-1, -1);
-      }
+    for (unsigned int i = 0; i < preprocessed_pcl_ptr->points.size(); ++i) {
+        const auto& point = preprocessed_pcl_ptr->points[i];
+        if (cost_map->isInside(grid_map::Position(point.x, point.y))) {
+            grid_map::Index index;
+            cost_map->getIndex(grid_map::Position(point.x, point.y), index);
+            cost_map_data(index.x(), index.y()) = max_val_;
+            occupied_indices[i] = index;
+        } else {
+            occupied_indices[i] = grid_map::Index(-1, -1);
+        }
     }
 
     // remove index (-1, -1) which means outside of costmap
-    occupied_indices.erase(std::remove_if(occupied_indices.begin(), occupied_indices.end(), [](const grid_map::Index &index)
-                                          { return index.x() == -1 && index.y() == -1; }),
+    occupied_indices.erase(std::remove_if(occupied_indices.begin(), occupied_indices.end(),
+                                          [](const grid_map::Index& index) { return index.x() == -1 && index.y() == -1; }),
                            occupied_indices.end());
 
     return occupied_indices;
-  }
+}
 
-  // Inflate costmap for rigid body
-  void LocalCostmapGenerator::inflate_rigid_body(const std::string &layer_name, const std::vector<grid_map::Index> &occupied_indices, grid_map::GridMap *cost_map) const
-  {
-    grid_map::Matrix &cost_map_data = cost_map->get(layer_name);
+// Inflate costmap for rigid body
+void LocalCostmapGenerator::inflate_rigid_body(const std::string& layer_name,
+                                               const std::vector<grid_map::Index>& occupied_indices,
+                                               grid_map::GridMap* cost_map) const {
+    grid_map::Matrix& cost_map_data = cost_map->get(layer_name);
 
     const int front_offset = static_cast<int>(std::ceil(rigid_body_shape_.baselink2front / cost_map->getResolution()));
     const int rear_offset = static_cast<int>(std::ceil(rigid_body_shape_.baselink2rear / cost_map->getResolution()));
@@ -264,26 +242,22 @@ namespace local_costmap_generator
 
 // inflate costmap
 #pragma omp parallel for num_threads(thread_num_)
-    for (size_t i = 0; i < occupied_indices.size(); ++i)
-    {
-      const auto index = occupied_indices[i];
-      const int start_y = std::max(index.y() - right_offset, 0);
-      const int last_y = std::min(index.y() + left_offset, map_size(0));
-      const int start_x = std::max(index.x() - rear_offset, 0);
-      const int last_x = std::min(index.x() + front_offset, map_size(1));
+    for (size_t i = 0; i < occupied_indices.size(); ++i) {
+        const auto index = occupied_indices[i];
+        const int start_y = std::max(index.y() - right_offset, 0);
+        const int last_y = std::min(index.y() + left_offset, map_size(0));
+        const int start_x = std::max(index.x() - rear_offset, 0);
+        const int last_x = std::min(index.x() + front_offset, map_size(1));
 
-      for (int x = start_x; x < last_x; ++x)
-      {
-        for (int y = start_y; y < last_y; ++y)
-        {
-          cost_map_data(x, y) = max_val_;
+        for (int x = start_x; x < last_x; ++x) {
+            for (int y = start_y; y < last_y; ++y) {
+                cost_map_data(x, y) = max_val_;
+            }
         }
-      }
     }
-  }
+}
 
-  void LocalCostmapGenerator::publish_rigid_body_shape(const RigidBodyShape &rigid_body_shape) const
-  {
+void LocalCostmapGenerator::publish_rigid_body_shape(const RigidBodyShape& rigid_body_shape) const {
     visualization_msgs::MarkerArray marker_array;
     visualization_msgs::Marker marker;
 
@@ -311,6 +285,6 @@ namespace local_costmap_generator
     marker_array.markers.push_back(marker);
 
     pub_rigid_body_shape_.publish(marker_array);
-  }
+}
 
-} // namespace local_costmap_generator
+}  // namespace local_costmap_generator

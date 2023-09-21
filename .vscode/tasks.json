@@ -1,0 +1,30 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+	  {
+		"label": "catkin build (Release)",
+		"type": "shell",
+		"command": "make build",
+		"problemMatcher": [
+		  "$catkin-gcc"
+		],
+		"group": "build"
+	  },
+	  {
+		"label": "catkin build (Debug)",
+		"type": "shell",
+		"command": "make build-debug",
+		"problemMatcher": [
+		  "$catkin-gcc"
+		],
+		"group": "build"
+	  },
+	  {
+		"label": "clean",
+		"type": "shell",
+		"command": "make clean",
+		"group": "build",
+		"problemMatcher": []
+	  }
+	]
+  }

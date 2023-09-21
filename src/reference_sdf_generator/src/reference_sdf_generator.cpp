@@ -1,12 +1,12 @@
 #include "reference_sdf_generator/reference_sdf_generator.hpp"
 
-namespace reference_sdf_generator
-{
+namespace reference_sdf_generator {
 
-  ReferenceSDFGenerator::ReferenceSDFGenerator()
-      : nh_(""), private_nh_("~"), tf_listener_(tf_buffer_), reference_sdf_(std::vector<std::string>({distance_field_layer_name_, angle_field_layer_name_, speed_field_layer_name_}))
-  {
-
+ReferenceSDFGenerator::ReferenceSDFGenerator()
+    : nh_(""),
+      private_nh_("~"),
+      tf_listener_(tf_buffer_),
+      reference_sdf_(std::vector<std::string>({distance_field_layer_name_, angle_field_layer_name_, speed_field_layer_name_})) {
     // set parameters from ros parameter server
     private_nh_.param("update_rate", update_rate_, 0.05);
     private_nh_.param("thread_num", thread_num_, 4);
@@ -45,45 +45,36 @@ namespace reference_sdf_generator
     // For debug
     pub_waypoints_ = nh_.advertise<visualization_msgs::MarkerArray>("reference_sdf/waypoints", 1, true);
     // pub_calc_time_ = nh_.advertise<std_msgs::Float32>("reference_sdf/calc_time", 1, true);
-  }
+}
 
-  void ReferenceSDFGenerator::callback_waypoints(const waypoint_msgs::Waypoint &waypoints_msg)
-  {
-    if (waypoints_msg.poses.size() == 0)
-    {
-      ROS_WARN_THROTTLE(5.0, "[ReferenceSDFGenerator]Received waypoints is empty");
-      waypoints_msg_.poses.clear();
-      waypoints_msg_.twists.clear();
-      return;
-    }
-    else
-    {
-      ROS_INFO("[ReferenceSDFGenerator]New waypoints is received.");
+void ReferenceSDFGenerator::callback_waypoints(const waypoint_msgs::Waypoint& waypoints_msg) {
+    if (waypoints_msg.poses.size() == 0) {
+        ROS_WARN_THROTTLE(5.0, "[ReferenceSDFGenerator]Received waypoints is empty");
+        waypoints_msg_.poses.clear();
+        waypoints_msg_.twists.clear();
+        return;
+    } else {
+        ROS_INFO("[ReferenceSDFGenerator]New waypoints is received.");
     }
     waypoints_msg_ = waypoints_msg;
     is_waypoints_ok_ = true;
-  }
+}
 
-  // main loop
-  void ReferenceSDFGenerator::timer_callback([[maybe_unused]] const ros::TimerEvent &te)
-  {
+// main loop
+void ReferenceSDFGenerator::timer_callback([[maybe_unused]] const ros::TimerEvent& te) {
     /* Status check */
-    if (!is_waypoints_ok_)
-    {
-      ROS_WARN_THROTTLE(5.0, "[ReferenceSDFGenerator] path is not ready");
-      return;
+    if (!is_waypoints_ok_) {
+        ROS_WARN_THROTTLE(5.0, "[ReferenceSDFGenerator] path is not ready");
+        return;
     }
 
     // get current robot state
     geometry_msgs::TransformStamped trans_form_stamped;
-    try
-    {
-      trans_form_stamped = tf_buffer_.lookupTransform(map_frame_id_, robot_frame_id_, ros::Time(0));
-    }
-    catch (const tf2::TransformException &ex)
-    {
-      ROS_WARN_THROTTLE(3.0, "[ReferenceSDFGenerator] %s", ex.what());
-      return;
+    try {
+        trans_form_stamped = tf_buffer_.lookupTransform(map_frame_id_, robot_frame_id_, ros::Time(0));
+    } catch (const tf2::TransformException& ex) {
+        ROS_WARN_THROTTLE(3.0, "[ReferenceSDFGenerator] %s", ex.what());
+        return;
     };
     RobotState robot_state;
     robot_state.x = trans_form_stamped.transform.translation.x;
@@ -124,74 +115,66 @@ namespace reference_sdf_generator
 
     // Publish waypoints for debug
     publish_waypoints(waypoints);
-  }
+}
 
-  int ReferenceSDFGenerator::find_nearest_index(const std::vector<geometry_msgs::PoseStamped> &path, const RobotState &current_state) const
-  {
+int ReferenceSDFGenerator::find_nearest_index(const std::vector<geometry_msgs::PoseStamped>& path, const RobotState& current_state) const {
     int nearest_idx = 0;
     double min_dist = std::numeric_limits<double>::max();
     geometry_msgs::Point pos;
-    for (size_t i = 0; i < path.size(); i++)
-    {
-      const double dist = distance(path[i].pose.position, current_state);
-      if (dist < min_dist)
-      {
-        min_dist = dist;
-        nearest_idx = i;
-      }
+    for (size_t i = 0; i < path.size(); i++) {
+        const double dist = distance(path[i].pose.position, current_state);
+        if (dist < min_dist) {
+            min_dist = dist;
+            nearest_idx = i;
+        }
     }
     return nearest_idx;
-  }
+}
 
-  int ReferenceSDFGenerator::find_lookahead_index(const std::vector<geometry_msgs::PoseStamped> &path, const int &nearest_index, const double &lookahead_dist) const
-  {
+int ReferenceSDFGenerator::find_lookahead_index(const std::vector<geometry_msgs::PoseStamped>& path,
+                                                const int& nearest_index,
+                                                const double& lookahead_dist) const {
     // Find target waypoint index with loop path
     int target_waypoint_idx_ = nearest_index;
     bool is_found_target_waypoint_ = false;
     int index = nearest_index;
-    while (!is_found_target_waypoint_)
-    {
-      index = (index + 1) % path.size();
-      const double dist = distance(path[index].pose.position, path[nearest_index].pose.position);
-      if (dist >= lookahead_dist)
-      {
-        target_waypoint_idx_ = index;
-        is_found_target_waypoint_ = true;
-      }
+    while (!is_found_target_waypoint_) {
+        index = (index + 1) % path.size();
+        const double dist = distance(path[index].pose.position, path[nearest_index].pose.position);
+        if (dist >= lookahead_dist) {
+            target_waypoint_idx_ = index;
+            is_found_target_waypoint_ = true;
+        }
     }
 
     return target_waypoint_idx_;
-  }
+}
 
-  ReferenceSDFGenerator::Waypoints ReferenceSDFGenerator::calc_waypoints(const waypoint_msgs::Waypoint &waypoints_msg, const RobotState &current_state) const
-  {
+ReferenceSDFGenerator::Waypoints ReferenceSDFGenerator::calc_waypoints(const waypoint_msgs::Waypoint& waypoints_msg,
+                                                                       const RobotState& current_state) const {
     Waypoints waypoints;
 
-    auto get_waypoint = [](const waypoint_msgs::Waypoint &waypoints_msgs, const int &index)
-    {
-      RobotState waypoint;
-      waypoint.x = waypoints_msgs.poses[index].pose.position.x;
-      waypoint.y = waypoints_msgs.poses[index].pose.position.y;
+    auto get_waypoint = [](const waypoint_msgs::Waypoint& waypoints_msgs, const int& index) {
+        RobotState waypoint;
+        waypoint.x = waypoints_msgs.poses[index].pose.position.x;
+        waypoint.y = waypoints_msgs.poses[index].pose.position.y;
 
-      // calculate yaw angle
-      int next_index = 0;
-      if (index == static_cast<int>(waypoints_msgs.poses.size()) - 1)
-      {
-        next_index = index - 1;
-        waypoint.yaw = std::atan2(waypoints_msgs.poses[index].pose.position.y - waypoints_msgs.poses[next_index].pose.position.y,
-                                  waypoints_msgs.poses[index].pose.position.x - waypoints_msgs.poses[next_index].pose.position.x);
-      }
-      else
-      {
-        next_index = index + 1;
-        waypoint.yaw = std::atan2(waypoints_msgs.poses[next_index].pose.position.y - waypoints_msgs.poses[index].pose.position.y,
-                                  waypoints_msgs.poses[next_index].pose.position.x - waypoints_msgs.poses[index].pose.position.x);
-      }
+        // calculate yaw angle
+        int next_index = 0;
+        if (index == static_cast<int>(waypoints_msgs.poses.size()) - 1) {
+            next_index = index - 1;
+            waypoint.yaw = std::atan2(waypoints_msgs.poses[index].pose.position.y - waypoints_msgs.poses[next_index].pose.position.y,
+                                      waypoints_msgs.poses[index].pose.position.x - waypoints_msgs.poses[next_index].pose.position.x);
+        } else {
+            next_index = index + 1;
+            waypoint.yaw = std::atan2(waypoints_msgs.poses[next_index].pose.position.y - waypoints_msgs.poses[index].pose.position.y,
+                                      waypoints_msgs.poses[next_index].pose.position.x - waypoints_msgs.poses[index].pose.position.x);
+        }
 
-      // vel
-      waypoint.vel = waypoints_msgs.twists[index].twist.linear.x;
+        // vel
+        waypoint.vel = waypoints_msgs.twists[index].twist.linear.x;
 
-      return waypoint;
+        return waypoint;
     };
 
     // find nearest point
@@ -203,33 +186,30 @@ namespace reference_sdf_generator
 
     // find waypoints with lookahead distance
     int current_waypoint_idx = nearest_idx_with_margin;
-    for (int i = 1; i < num_waypoints_; i++)
-    {
-      const int target_waypoint_idx = find_lookahead_index(waypoints_msg.poses, current_waypoint_idx, waypoint_interval_);
+    for (int i = 1; i < num_waypoints_; i++) {
+        const int target_waypoint_idx = find_lookahead_index(waypoints_msg.poses, current_waypoint_idx, waypoint_interval_);
 
-      const auto waypoint = get_waypoint(waypoints_msg, target_waypoint_idx);
-      waypoints.push_back(waypoint);
-      current_waypoint_idx = target_waypoint_idx;
+        const auto waypoint = get_waypoint(waypoints_msg, target_waypoint_idx);
+        waypoints.push_back(waypoint);
+        current_waypoint_idx = target_waypoint_idx;
     }
 
     return waypoints;
-  }
+}
 
-  void ReferenceSDFGenerator::build_reference_sdf(const Waypoints &waypoints, const RobotState &current_state, grid_map::GridMap *reference_sdf) const
-  {
-    reference_sdf->setGeometry(grid_map::Length(ref_path_map_width_, ref_path_map_height_), ref_path_map_resolution_, grid_map::Position(current_state.x, current_state.y));
+void ReferenceSDFGenerator::build_reference_sdf(const Waypoints& waypoints, const RobotState& current_state, grid_map::GridMap* reference_sdf) const {
+    reference_sdf->setGeometry(grid_map::Length(ref_path_map_width_, ref_path_map_height_), ref_path_map_resolution_,
+                               grid_map::Position(current_state.x, current_state.y));
 
     // Ellipse submap setting
-    // TODO: これをするとisInside()でsubmapの範囲が使えないので，nanが発生しうる
-    // 一方で，通常のgridmapだと正方形なので無駄がある
     // const double ahead_distance = submap_center_ahead_;
-    // const grid_map::Position ellipse_center(current_state.x + ahead_distance * cos(current_state.yaw), current_state.y + ahead_distance * sin(current_state.yaw));
-    // const grid_map::Length length(submap_length_, submap_width_);
+    // const grid_map::Position ellipse_center(current_state.x + ahead_distance * cos(current_state.yaw), current_state.y + ahead_distance *
+    // sin(current_state.yaw)); const grid_map::Length length(submap_length_, submap_width_);
 
     // iterate all cells for calculating distance field
-    grid_map::Matrix &dist_data = reference_sdf->get(distance_field_layer_name_);
-    grid_map::Matrix &angle_data = reference_sdf->get(angle_field_layer_name_);
-    grid_map::Matrix &speed_data = reference_sdf->get(speed_field_layer_name_);
+    grid_map::Matrix& dist_data = reference_sdf->get(distance_field_layer_name_);
+    grid_map::Matrix& angle_data = reference_sdf->get(angle_field_layer_name_);
+    grid_map::Matrix& speed_data = reference_sdf->get(speed_field_layer_name_);
 
     const auto grid_map_size = reference_sdf->getSize();
     const unsigned int linear_grid_size = grid_map_size.prod();
@@ -239,37 +219,33 @@ namespace reference_sdf_generator
     // for (grid_map::GridMapIterator iterator(*reference_sdf); !iterator.isPastEnd(); ++iterator)
 
 #pragma omp parallel for num_threads(thread_num_)
-    for (unsigned int i = 0; i < linear_grid_size; ++i)
-    {
-      // const grid_map::Index index(*iterator);
-      const grid_map::Index index(grid_map::getIndexFromLinearIndex(i, grid_map_size));
+    for (unsigned int i = 0; i < linear_grid_size; ++i) {
+        // const grid_map::Index index(*iterator);
+        const grid_map::Index index(grid_map::getIndexFromLinearIndex(i, grid_map_size));
 
-      grid_map::Position position;
-      reference_sdf->getPosition(index, position);
+        grid_map::Position position;
+        reference_sdf->getPosition(index, position);
 
-      // calc distance to nearest waypoint
-      double min_dist = std::numeric_limits<double>::max();
-      int nearest_waypoint_idx = 0;
-      for (size_t i = 0; i < waypoints.size(); i++)
-      {
-        const double dist = sqrt((waypoints[i].x - position[0]) * (waypoints[i].x - position[0]) +
-                                 (waypoints[i].y - position[1]) * (waypoints[i].y - position[1]));
-        if (dist < min_dist)
-        {
-          min_dist = dist;
-          nearest_waypoint_idx = i;
+        // calc distance to nearest waypoint
+        double min_dist = std::numeric_limits<double>::max();
+        int nearest_waypoint_idx = 0;
+        for (size_t i = 0; i < waypoints.size(); i++) {
+            const double dist = sqrt((waypoints[i].x - position[0]) * (waypoints[i].x - position[0]) +
+                                     (waypoints[i].y - position[1]) * (waypoints[i].y - position[1]));
+            if (dist < min_dist) {
+                min_dist = dist;
+                nearest_waypoint_idx = i;
+            }
         }
-      }
 
-      // set each field value
-      dist_data(index[0], index[1]) = min_dist;
-      angle_data(index[0], index[1]) = waypoints[nearest_waypoint_idx].yaw;
-      speed_data(index[0], index[1]) = std::min(waypoints[nearest_waypoint_idx].vel * reference_speed_scale_, max_speed_);
+        // set each field value
+        dist_data(index[0], index[1]) = min_dist;
+        angle_data(index[0], index[1]) = waypoints[nearest_waypoint_idx].yaw;
+        speed_data(index[0], index[1]) = std::min(waypoints[nearest_waypoint_idx].vel * reference_speed_scale_, max_speed_);
     }
-  }
+}
 
-  void ReferenceSDFGenerator::publish_waypoints(const Waypoints &waypoints) const
-  {
+void ReferenceSDFGenerator::publish_waypoints(const Waypoints& waypoints) const {
     visualization_msgs::MarkerArray marker_array;
     visualization_msgs::Marker arrow;
     arrow.header.frame_id = map_frame_id_;
@@ -296,27 +272,26 @@ namespace reference_sdf_generator
     arrow.lifetime = ros::Duration(0.1);
     arrow.points.resize(2);
 
-    for (size_t i = 0; i < waypoints.size(); i++)
-    {
-      arrow.id = i;
-      const double length = 0.3;
-      geometry_msgs::Point start;
-      start.x = waypoints[i].x;
-      start.y = waypoints[i].y;
-      start.z = 0.1;
+    for (size_t i = 0; i < waypoints.size(); i++) {
+        arrow.id = i;
+        const double length = 0.3;
+        geometry_msgs::Point start;
+        start.x = waypoints[i].x;
+        start.y = waypoints[i].y;
+        start.z = 0.1;
 
-      geometry_msgs::Point end;
-      end.x = waypoints[i].x + length * cos(waypoints[i].yaw);
-      end.y = waypoints[i].y + length * sin(waypoints[i].yaw);
-      end.z = 0.1;
+        geometry_msgs::Point end;
+        end.x = waypoints[i].x + length * cos(waypoints[i].yaw);
+        end.y = waypoints[i].y + length * sin(waypoints[i].yaw);
+        end.z = 0.1;
 
-      arrow.points[0] = start;
-      arrow.points[1] = end;
+        arrow.points[0] = start;
+        arrow.points[1] = end;
 
-      marker_array.markers.push_back(arrow);
+        marker_array.markers.push_back(arrow);
     }
 
     pub_waypoints_.publish(marker_array);
-  }
-
 }
+
+}  // namespace reference_sdf_generator

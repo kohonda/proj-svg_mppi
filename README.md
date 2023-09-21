@@ -59,13 +59,13 @@ make build
 
 Launch simulator in the Docker container
 ```bash
-cd proj-svg_mppi/script
+cd proj-svg_mppi
 ./script/launch_simulator.sh
 ```
 
 Launch controllers in another terminal
 ```bash
-cd proj-svg_mppi/script
+cd proj-svg_mppi
 ./script/launch_controllers.sh 
 ```
 
