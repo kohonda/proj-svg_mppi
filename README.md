@@ -3,15 +3,15 @@
 
 ![Overview](docs/assets/overview_svg_mppi.png)
 
-Demo Video
-[![demo video](https://img.youtube.com/vi/ML_aOYQIDL0/0.jpg)](https://www.youtube.com/watch?v=ML_aOYQIDL0)
+Demo Video: https://www.youtube.com/watch?v=ML_aOYQIDL0
+
 
 ```bibtex
 @article{honda2023stein,
       title={Stein Variational Guided Model Predictive Path Integral Control: Proposal and Experiments with Fast Maneuvering Vehicles}, 
       author={Kohei Honda and Naoki Akai and Kosuke Suzuki and Mizuho Aoki and Hirotaka Hosogaya and Hiroyuki Okuda and Tatsuya Suzuki},
-      year={2023},
-      eprint={arXiv:2309.11040}
+      eprint={arXiv:2309.11040},
+      year={2023}
 }
 ```
 
