@@ -1,20 +1,11 @@
 
 # Stein Variational Guided Model Predictive Path Integral Control (SVG-MPPI)
 
+[**Paper**](https://arxiv.org/abs/2309.11040) | [**Video**](https://www.youtube.com/watch?v=ML_aOYQIDL0) 
+
+This package includes ROS implementation of [Stein Variational Guided Model Predictive Path Integral Control: Proposal and Experiments with Fast Maneuvering Vehicles](https://arxiv.org/abs/2309.11040) presented in ICRA 2024.
+
 ![Overview](docs/assets/overview_svg_mppi.png)
-
-Demo Video: https://www.youtube.com/watch?v=ML_aOYQIDL0
-
-
-```bibtex
-@inproceedings{honda2023stein,
-  title={Stein Variational Guided Model Predictive Path Integral Control: Proposal and Experiments with Fast Maneuvering Vehicles}, 
-  author={Kohei Honda and Naoki Akai and Kosuke Suzuki and Mizuho Aoki and Hirotaka Hosogaya and Hiroyuki Okuda and Tatsuya Suzuki},
-  booktitle={IEEE International Conference on Robotics and Automation},
-  year={2024 (in print)},
-  organization={IEEE}
-}
-```
 
 ## Tested Environment
 
@@ -101,3 +92,16 @@ cd proj-svg_mppi/script
 ```
 
 **Note**: The evaluation is used asynchronous simulation using ROS. So, the results can be slightly changed even if all seeds are fixed.
+
+
+## Citation
+
+```bibtex
+@inproceedings{honda2023stein,
+  title={Stein Variational Guided Model Predictive Path Integral Control: Proposal and Experiments with Fast Maneuvering Vehicles}, 
+  author={Kohei Honda and Naoki Akai and Kosuke Suzuki and Mizuho Aoki and Hirotaka Hosogaya and Hiroyuki Okuda and Tatsuya Suzuki},
+  booktitle={IEEE International Conference on Robotics and Automation},
+  year={2024 (in print)},
+  organization={IEEE}
+}
+```
