@@ -97,11 +97,12 @@ cd proj-svg_mppi/script
 ## Citation
 
 ```bibtex
-@inproceedings{honda2023stein,
-  title={Stein Variational Guided Model Predictive Path Integral Control: Proposal and Experiments with Fast Maneuvering Vehicles}, 
-  author={Kohei Honda and Naoki Akai and Kosuke Suzuki and Mizuho Aoki and Hirotaka Hosogaya and Hiroyuki Okuda and Tatsuya Suzuki},
-  booktitle={IEEE International Conference on Robotics and Automation},
-  year={2024 (in print)},
+@inproceedings{honda2024stein,
+  title={Stein Variational Guided Model Predictive Path Integral Control: Proposal and Experiments with Fast Maneuvering Vehicles},
+  author={Honda, Kohei and Akai, Naoki and Suzuki, Kosuke and Aoki, Mizuho and Hosogaya, Hirotaka and Okuda, Hiroyuki and Suzuki, Tatsuya},
+  booktitle={2024 IEEE International Conference on Robotics and Automation (ICRA)},
+  pages={7020--7026},
+  year={2024},
   organization={IEEE}
 }
 ```
