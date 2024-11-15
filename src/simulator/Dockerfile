@@ -21,7 +21,7 @@ RUN apt-get install -y ros-noetic-ackermann-msgs \
                        ros-noetic-xacro \
                        ros-noetic-robot-state-publisher 
 
-RUN pip3 install --upgrade pip
+# RUN pip3 install --upgrade pip
 
 RUN pip3 install PyOpenGL \
                  PyOpenGL_accelerate
