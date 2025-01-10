@@ -5,6 +5,10 @@
 
 This package includes ROS implementation of [Stein Variational Guided Model Predictive Path Integral Control: Proposal and Experiments with Fast Maneuvering Vehicles](https://arxiv.org/abs/2309.11040) presented in ICRA 2024.
 
+
+https://github.com/user-attachments/assets/25bd67c5-3e9c-4c4e-9a79-cacf066f4af5
+
+
 ![Overview](docs/assets/overview_svg_mppi.png)
 
 ## Tested Environment
