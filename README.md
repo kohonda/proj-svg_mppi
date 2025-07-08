@@ -55,6 +55,12 @@ make bash
 ```
 You can change the all MPPI parameters and settings in [the yaml file](./src/mppi_controller/config/mppi_controller.yaml)
 
+
+
+https://github.com/user-attachments/assets/06b4fd91-6a2c-4f6e-9f44-94393595ece2
+
+
+
 ## Run on Native System
 
 ### Requirements
