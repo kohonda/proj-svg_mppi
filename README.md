@@ -12,13 +12,12 @@ https://github.com/user-attachments/assets/25bd67c5-3e9c-4c4e-9a79-cacf066f4af5
 ![Overview](docs/assets/overview_svg_mppi.png)
 
 ## Tested Environment
-- Ubuntu 20.04, 22.04
+- Ubuntu 20.04, 22.04, and 24.04
 - Docker
 
 <details>
 <summary>Docker Installation</summary>
 
-## Install Docker
 [Installation guide](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository)
 
 ```bash
