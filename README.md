@@ -12,33 +12,12 @@ https://github.com/user-attachments/assets/25bd67c5-3e9c-4c4e-9a79-cacf066f4af5
 ![Overview](docs/assets/overview_svg_mppi.png)
 
 ## Tested Environment
-
-- Ubuntu Focal 20.04 (LTS)
-- ROS Noetic
+- Ubuntu 20.04, 22.04, and 24.04
+- Docker
 
 <details>
-<summary>Basic Instllation</summary>
+<summary>Docker Installation</summary>
 
-## Install ROS noetic
-[Installation guide](http://wiki.ros.org/noetic/Installation/Ubuntu)
-
-```bash
-# Set up your computer to accept software from packages.ros.org
-sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
-
-# Set up your keys
-sudo apt install -y curl # if you haven't already installed curl
-curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo apt-key add -
-sudo apt update
-
-# install ROS
-sudo apt install -y ros-noetic-desktop-full
-
-# Install other tools 
-sudo apt install python3-osrf-pycommon python3-catkin-tools
-```
-
-## Install Docker
 [Installation guide](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository)
 
 ```bash
@@ -51,21 +30,53 @@ sudo usermod -aG docker $USER
 
 </details>
 
-## Install Dependencies
+## Quick Start with Docker
+
+### 1. Build Docker Image
+```bash
+make docker_build
+```
+
+### 2. Launch Simulator and Controllers
+
+Launch simulator in a new terminal
+```bash
+cd proj-svg_mppi
+./script/launch_simulator.sh
+```
+
+Launch controllers in another terminal
+```bash
+cd proj-svg_mppi
+# Enter Docker container with GUI support
+make bash
+# Inside container, launch controllers
+./script/launch_controllers.sh
+```
+You can change the all MPPI parameters and settings in [the yaml file](./src/mppi_controller/config/mppi_controller.yaml)
+
+## Run on Native System
+
+### Requirements
+
+- Ubuntu 20.04
+- ROS Noetic
+
+### 1. Install Dependencies
 
 ```bash
 cd proj-svg_mppi
 make setup
 ```
 
-## Build Controllers
+### 2. Build the Project
 
 ```bash
 cd proj-svg_mppi
 make build
 ```
 
-## Run Simulation with Visualization
+### 3. Launch Simulator and Controllers
 
 Launch simulator in the Docker container
 ```bash
@@ -78,8 +89,6 @@ Launch controllers in another terminal
 cd proj-svg_mppi
 ./script/launch_controllers.sh 
 ```
-
-You can change the all MPPI parameters and settings in [the yaml file](./src/mppi_controller/config/mppi_controller.yaml)
 
 ## Evaluation
 

@@ -14,3 +14,27 @@ build:
 clean:
 	# clean build files
 	rm -rf build devel logs .catkin_tools install
+
+# Docker commands
+docker_build:
+	docker build \
+		--build-arg USER_ID=$(shell id -u) \
+		--build-arg GROUP_ID=$(shell id -g) \
+		-t svg-mppi:latest .
+
+.PHONY: bash
+bash:
+	xhost +local:docker
+	docker run -it --rm \
+		--network host \
+		--privileged \
+		--user developer \
+		-e DISPLAY=${DISPLAY} \
+		-e QT_X11_NO_MITSHM=1 \
+		-v /tmp/.X11-unix:/tmp/.X11-unix:rw \
+		-v ${HOME}/.Xauthority:/home/developer/.Xauthority:rw \
+		-v ${PWD}:/workspace \
+		-w /workspace \
+		svg-mppi:latest \
+		bash
+
